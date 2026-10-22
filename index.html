@@ -1143,7 +1143,13 @@ render();
   const panel = document.createElement('div');
   panel.className = 'fb-panel';
   panel.innerHTML = `
-    <div class="fb-head"><b>反馈</b><span id="fb-count">0 条待处理</span></div>
+    <div class="fb-head">
+      <b>反馈</b>
+      <span style="display:flex;align-items:center;gap:8px">
+        <span id="fb-count">0 条待处理</span>
+        <button class="fb-btn2" id="fb-exit" title="退出反馈模式 (F)">退出</button>
+      </span>
+    </div>
     <div id="fb-links" style="padding:8px 14px 0"></div>
     <div class="fb-body" id="fb-list"></div>
     <div style="padding:9px 14px;border-top:1px solid #3a2f24;display:flex;gap:6px;flex-wrap:wrap">
@@ -1367,7 +1373,8 @@ render();
     }
 
     if (blocked) say('浏览器拦截了新窗口 —— 请允许弹出窗口，或用「复制最新一条」发给我');
-    else say(issueUrl ? '已开 GitHub Issue，确认后 agent 就能收到' : '已提交，反馈已送到 agent');
+    else if (issueUrl) say('已开 GitHub Issue，确认后 agent 就能收到 · 按 F 可继续操作应用');
+    else say('已提交，反馈已送到 agent · 按 F 可继续操作应用');
   };
 
   function toText(it) {
@@ -1412,6 +1419,8 @@ render();
   }
 
   btn.onclick = () => setMode(!mode);
+  const exitBtn = document.getElementById('fb-exit');
+  if (exitBtn) exitBtn.onclick = () => { setMode(false); say('已退出反馈模式，可以继续操作应用了'); };
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { pop.classList.remove('open'); sel = null; }
