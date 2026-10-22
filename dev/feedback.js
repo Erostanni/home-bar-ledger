@@ -70,6 +70,7 @@
   panel.className = 'fb-panel';
   panel.innerHTML = `
     <div class="fb-head"><b>反馈</b><span id="fb-count">0 条待处理</span></div>
+    <div id="fb-links" style="padding:8px 14px 0"></div>
     <div class="fb-body" id="fb-list"></div>`;
   document.body.appendChild(panel);
 
@@ -220,6 +221,11 @@
 
   document.getElementById('fb-cancel').onclick = () => { pop.classList.remove('open'); sel = null; };
 
+  // 反馈出口：优先 POST 到 dev server；配置了 repo 时可改为开 GitHub Issue
+  const qs = new URLSearchParams(location.search);
+  const REPO = qs.get('repo') || (window.__FB_REPO__ || '');
+  const GH = REPO ? 'https://github.com/' + REPO + '/issues/new' : '';
+
   document.getElementById('fb-send').onclick = async () => {
     if (!sel) return;
     const note = document.getElementById('fb-note').value.trim();
@@ -242,7 +248,27 @@
     say('已提交，反馈已送到 agent');
     try {
       await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
-    } catch (e) { say('已存本地（服务端未连通）'); }
+    } catch (e) { /* 本地已存 */ }
+
+    if (GH) {
+      const body = [
+        '### ' + (note || '(无文字描述)'),
+        '',
+        '| 字段 | 值 |',
+        '| --- | --- |',
+        '| 优先级 | ' + priName(pri) + ' |',
+        '| 视图 | ' + currentView() + ' |',
+        '| 元素文本 | ' + (sel.text || '') + ' |',
+        '| CSS 选择器 | `' + sel.path + '` |',
+        '| 视口 | ' + window.innerWidth + '×' + window.innerHeight + ' |',
+        '',
+        '<!-- 由应用内反馈组件自动生成 -->',
+      ].join('\n');
+      const u = GH + '?title=' + encodeURIComponent('[反馈] ' + (sel.text || '未命名元素').slice(0, 40) + ' — ' + (note || '').slice(0, 60))
+        + '&body=' + encodeURIComponent(body);
+      window.open(u, '_blank');
+      say('已开 GitHub Issue，确认后 agent 就能收到');
+    }
   };
 
   function currentView() {
@@ -259,9 +285,20 @@
     }
   });
 
+  function renderLinks() {
+    const box = document.getElementById('fb-links');
+    if (!box) return;
+    const qs2 = new URLSearchParams(location.search);
+    const repo = qs2.get('repo') || (window.__FB_REPO__ || '');
+    if (!repo) { box.style.display = 'none'; return; }
+    box.innerHTML = '<a class="fb-btn2" style="display:inline-block;text-decoration:none" target="_blank" '
+      + 'href="https://github.com/' + repo + '/issues?q=label:%E5%8F%8D%E9%A6%88">查看全部反馈 Issue</a>';
+  }
+
   /* ---------- 初始加载 ---------- */
   items = loadLocal();
   renderList();
+  renderLinks();
   fetch('/__feedback').then(r => r.json()).then(list => {
     if (Array.isArray(list) && list.length) {
       const merged = [...items];
