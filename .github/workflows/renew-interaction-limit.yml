@@ -7,9 +7,6 @@ name: 维持 Issue 互动限制
 # （GITHUB_TOKEN 的 permissions 白名单里没有 administration 键，不能写在
 #  permissions: 里——写了会导致整个 workflow 文件被 GitHub 判为无效）
 on:
-  push:
-    branches: [main]
-    paths: ['.github/workflows/renew-interaction-limit.yml']
   schedule:
     - cron: '17 3 * * *'     # 每天 03:17 UTC
   workflow_dispatch:          # 也可手动触发
@@ -41,6 +38,12 @@ jobs:
           if [ "$CODE" != "200" ] && [ -n "${RENEW_TOKEN:-}" ]; then
             CODE=$(apply "$RENEW_TOKEN")
             WHO="RENEW_TOKEN"
+          fi
+          if [ "$CODE" != "200" ] && [ -z "${RENEW_TOKEN:-}" ]; then
+            echo "ℹ️  GITHUB_TOKEN 无 administration 权限，且未配置 RENEW_TOKEN secret。"
+            echo "ℹ️  主路径不依赖本 workflow：agent 每次查反馈时会顺手续期（见 tools/check_feedback.py）。"
+            echo "ℹ️  想让它独立跑，请在 Settings → Secrets → Actions 添加 RENEW_TOKEN。"
+            exit 0
           fi
 
           echo "使用凭据: $WHO · HTTP $CODE"

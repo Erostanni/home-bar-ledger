@@ -71,6 +71,29 @@ def priority_of(body):
     return "未标注"
 
 
+def renew_interaction_limit():
+    """顺手把「仅协作者可创建 Issue」的 24 小时限制续上。
+
+    这个限制会过期，过期后任何人都能提 Issue。
+    既然每次查反馈都要调一次 GitHub API，就顺便续期 —— 节奏正好吻合。
+    """
+    import urllib.request
+    req = urllib.request.Request(
+        f"{API}/../interaction-limits".replace("/issues/../", "/"),
+        data=json.dumps({"limit": "collaborators_only"}).encode(),
+        headers={**HEADERS, "Content-Type": "application/json"},
+        method="PUT",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            d = json.loads(r.read().decode())
+            print(f"🔒 Issue 互动限制已续期：{d.get('limit')}（到期 {d.get('expires_at')}）")
+            return True
+    except Exception as e:
+        print(f"⚠️  互动限制续期失败：{e}（不影响查反馈）", file=sys.stderr)
+        return False
+
+
 def main():
     # 找到当前最大 issue 号：从未知起点往后扫到 404
     start = 1
@@ -96,6 +119,8 @@ def main():
 
     with open(WM, "w") as f:
         f.write(str(highest))
+
+    renew_interaction_limit()
 
     if not found:
         print("✅ 没有待处理的反馈")
