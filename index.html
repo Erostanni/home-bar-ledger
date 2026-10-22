@@ -211,6 +211,20 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .modal footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end}
 .fld{margin-bottom:13px}
 .fld .hint{font-size:11px;color:var(--mu2);margin-top:4px}
+.fcombo{position:relative}
+.fsug{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;background:#241d17;border:1px solid #4a3b2c;
+  border-radius:9px;max-height:264px;overflow-y:auto;display:none;box-shadow:0 16px 44px rgba(0,0,0,.55)}
+.fsug.open{display:block}
+.fsug-item{padding:8px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;border-bottom:1px solid #2a211a}
+.fsug-item:last-child{border-bottom:none}
+.fsug-item:hover,.fsug-item.sel{background:#2f2519}
+.fsug-item .fz{color:#ece3d5;font-size:13px;font-weight:500;flex:0 0 auto}
+.fsug-item .fe{color:#7d6c58;font-size:11px;font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fsug-item .fempty{padding:10px 12px;color:#7d6c58;font-size:12px;cursor:default}
+.fprev{margin-top:9px;padding:9px 12px;border:1px solid #3a2f24;border-radius:8px;background:#1a1410;display:none}
+.fprev.on{display:block}
+.fprev .fptitle{font-size:13px;color:#ece3d5;margin-bottom:5px}
+.fprev .fpmeta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px}
 
 /* ---------- toast ---------- */
 #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);z-index:99;
@@ -293,6 +307,14 @@ const DATA = {"recipes":[{"id":"20th-century","name":"20th Century","desc":"1937
 /* ============================ 常量 ============================ */
 const RECIPES = DATA.recipes;
 const ING_META = DATA.ingredients;
+/* 原料索引：按在配方中出现的频次排序，搜索时优先展示常用的 */
+const ING_LIST = (() => {
+  const freq = {};
+  for (const r of RECIPES) for (const i of r.ings) if (i.n) freq[i.n] = (freq[i.n] || 0) + 1;
+  return Object.keys(ING_META)
+    .map(n => ({ n, z: ING_META[n].zh || '', cat: ING_META[n].catZh || ING_META[n].cat || '', abv: ING_META[n].abv, f: freq[n] || 0 }))
+    .sort((a, b) => b.f - a.f || a.n.localeCompare(b.n));
+})();
 const BY_ID = Object.fromEntries(RECIPES.map(r => [r.id, r]));
 const KEY = 'hbl.v1';
 const ML_PER_OZ = 29.5735;
@@ -841,14 +863,15 @@ function handle(act,d){
 /* --- 原料表单 --- */
 function stockForm(name){
   const s=name?stockEntry(name):{name:'',sizeMl:0,price:null,unopened:0,openedMl:0};
-  const names=Object.keys(ING_META).sort((a,b)=>a.localeCompare(b,'en'));
-  const opts=names.map(n=>`<option value="${esc(n)}" ${n===s.name?'selected':''}>${esc(n)}</option>`).join('');
   openModal(name?'编辑原料':'添加原料', `
     <div class="fld">
-      <label class="lb">原料名称</label>
-      <input class="inp" id="fName" list="ingList" value="${esc(s.name)}" placeholder="如 Gin / 金酒">
-      <datalist id="ingList">${opts}</datalist>
-      <div class="hint">从配方库选过的原料会自动带出分类与参考价</div>
+      <label class="lb">原料名称 <span class="tiny dim">支持中文搜索</span></label>
+      <div class="fcombo">
+        <input class="inp" id="fName" value="${esc(s.name)}" placeholder="输入「金酒」「伏特加」或英文均可" autocomplete="off">
+        <div class="fsug" id="fSug"></div>
+      </div>
+      <div class="fprev" id="fPrev"></div>
+      <div class="hint">已收录 ${ING_LIST.length} 种原料 · 选中后自动带出分类、规格与参考价</div>
     </div>
     <div class="row" style="gap:10px">
       <div class="fld sp"><label class="lb">整瓶数</label><input class="inp" id="fUnopened" type="number" min="0" step="1" value="${s.unopened||0}"></div>
@@ -860,19 +883,90 @@ function stockForm(name){
     </div>
     <div class="fld"><label class="lb">备注</label><input class="inp" id="fNote" value="${esc(s.note||'')}" placeholder="品牌 / 批次 / 开封日期"></div>
   `, (body,close)=>{
-    body.querySelector('#fName').onchange=(e)=>{
-      const n=canonicalName(e.target.value);
+    const nameEl = body.querySelector('#fName');
+    const sugBox = body.querySelector('#fSug');
+    const prevBox = body.querySelector('#fPrev');
+    let sugItems = [], sugIdx = -1;
+
+    function refOf(n){
+      return RECIPES.flatMap(r=>r.ings).find(i=>canonicalName(i.n)===n);
+    }
+    function applyMeta(n, force){
+      const meta = ING_META[n];
+      if(!meta) return;
+      const ref = refOf(n);
+      const sizeEl = body.querySelector('#fSize');
+      const priceEl = body.querySelector('#fPrice');
+      if(ref && ref.refSize && (force || !sizeEl.value)) sizeEl.value = ref.refSize;
+      if(ref && ref.refPrice!=null && (force || !priceEl.value)) priceEl.value = ref.refPrice;
+      // 预览
+      if(prevBox){
+        prevBox.classList.add('on');
+        prevBox.innerHTML = '<div class="fptitle">'+esc(meta.z||n)
+          + (meta.z ? ' <span class="tiny dim">'+esc(n)+'</span>' : '')
+          + '</div>'
+          + '<div class="fpmeta">'
+          + '<span class="pill">'+esc(meta.catZh||meta.cat||'其他')+'</span>'
+          + (meta.abv?'<span class="pill">'+meta.abv+'% ABV</span>':'')
+          + (ref&&ref.refSize?'<span class="pill">标准规格 '+ref.refSize+'ml</span>':'')
+          + (ref&&ref.refPrice!=null?'<span class="pill gold">参考价 '+db.settings.currency+ref.refPrice+'</span>':'<span class="pill">参考价未收录</span>')
+          + '</div>';
+      }
+    }
+    function renderSug(q){
+      const t = (q||'').trim().toLowerCase();
+      let list;
+      if(!t) list = ING_LIST.slice(0, 8);
+      else list = ING_LIST.filter(x =>
+        x.n.toLowerCase().includes(t) || (x.z && x.z.toLowerCase().includes(t))
+      ).slice(0, 10);
+      sugItems = list; sugIdx = -1;
+      if(!list.length){
+        sugBox.innerHTML = '<div class="fsug-item fempty">没找到「'+esc(q)+'」，可直接保存为自定义原料</div>';
+      } else {
+        sugBox.innerHTML = list.map((x,i)=>
+          '<div class="fsug-item" data-i="'+i+'">'
+          + '<span class="fz">'+esc(x.z||x.n)+'</span>'
+          + '<span class="fe">'+esc(x.n)+'</span>'
+          + '<span class="pill">'+esc(x.cat)+'</span>'
+          + '</div>').join('');
+        sugBox.querySelectorAll('.fsug-item[data-i]').forEach(el=>{
+          el.onclick=()=>{ pick(sugItems[+el.dataset.i]); };
+        });
+      }
+      sugBox.classList.add('open');
+    }
+    function pick(x){
+      if(!x) return;
+      nameEl.value = x.n;
+      sugBox.classList.remove('open');
+      applyMeta(x.n, true);
+      nameEl.focus();
+    }
+    nameEl.addEventListener('input',()=>{ renderSug(nameEl.value); });
+    nameEl.addEventListener('focus',()=>{ renderSug(nameEl.value); });
+    nameEl.addEventListener('blur',()=>{ setTimeout(()=>sugBox.classList.remove('open'),150); });
+    nameEl.addEventListener('keydown',(e)=>{
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+        e.preventDefault();
+        if(!sugItems.length) return;
+        sugIdx = (sugIdx + (e.key==='ArrowDown'?1:-1) + sugItems.length) % sugItems.length;
+        sugBox.querySelectorAll('.fsug-item[data-i]').forEach((el,i)=>el.classList.toggle('sel', i===sugIdx));
+      } else if(e.key==='Enter'){
+        if(sugIdx>=0){ e.preventDefault(); pick(sugItems[sugIdx]); }
+        else {
+          const n = canonicalName(nameEl.value.trim());
+          if(n && ING_META[n]){ nameEl.value = n; applyMeta(n, true); sugBox.classList.remove('open'); }
+        }
+      } else if(e.key==='Escape'){ sugBox.classList.remove('open'); }
+    });
+    nameEl.onchange=(e)=>{
+      const n=canonicalName(e.target.value.trim());
       if(n!==e.target.value.trim()) e.target.value=n;
-      const meta=ING_META[n];
-      if(meta && !body.querySelector('#fSize').value){
-        const found=RECIPES.flatMap(r=>r.ings).find(i=>canonicalName(i.n)===n);
-        if(found && found.refSize) body.querySelector('#fSize').value=found.refSize;
-      }
-      if(meta && !body.querySelector('#fPrice').value){
-        const found=RECIPES.flatMap(r=>r.ings).find(i=>canonicalName(i.n)===n);
-        if(found && found.refPrice!=null) body.querySelector('#fPrice').value=found.refPrice;
-      }
+      if(n && ING_META[n]) applyMeta(n, false);
+      else prevBox.classList.remove('on');
     };
+    if(s.name && ING_META[s.name]) applyMeta(s.name, false);
     body.querySelector('#mSave').onclick=()=>{
       const raw=body.querySelector('#fName').value.trim();
       if(!raw){ toast('原料名不能为空','bad'); return; }

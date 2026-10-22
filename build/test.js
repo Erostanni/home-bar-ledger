@@ -314,5 +314,40 @@ console.log('\n【15】中文入库的原料能正常扣减');
   ok(d.ledger[0].lines.every(l => l.n === 'Gin' || l.n === 'Sweet Vermouth' || l.n === 'Campari'), '扣减明细用规范名');
 }
 
+/* ============ 场景 16：原料选择器（中文搜索 + 预览 + 自动带出） ============ */
+console.log('\n【16】原料选择器');
+{
+  const t = boot(null);
+  t.tab('cabinet');
+  t.click(t.$('[data-act="addstock"]'));
+  ok(!!t.$('#fName'), '原料表单打开');
+  ok(!t.$('datalist'), '旧版英文 datalist 已移除');
+
+  t.setVal(t.$('#fName'), '金');
+  const sug = t.$$('.fsug-item');
+  ok(sug.length >= 2, `中文搜索「金」出 ${sug.length} 条建议`);
+  ok(sug[0].textContent.includes('金酒'), '首条是「金酒」');
+  ok(sug[0].textContent.includes('Gin'), '同时显示英文原名');
+  ok(sug[0].textContent.includes('烈酒'), '显示中文分类');
+
+  t.click(sug[0]);
+  ok(t.$('#fName').value === 'Gin', '选中后输入框填入规范名 Gin');
+  ok(!!t.$('.fprev.on'), '显示预览区');
+  const prev = t.$('.fprev').textContent;
+  ok(prev.includes('40% ABV'), '预览含 ABV');
+  ok(prev.includes('750ml'), '预览含标准规格');
+  ok(prev.includes('180'), '预览含参考价');
+  ok(t.$('#fSize').value === '750', '自动带出规格');
+  ok(t.$('#fPrice').value === '180', '自动带出参考价');
+
+  // 英文搜索
+  t.setVal(t.$('#fName'), 'Campari');
+  ok(t.$$('.fsug-item').some(e => e.textContent.includes('金巴利')), '英文也能搜到（显示中文名）');
+
+  // 自定义原料
+  t.setVal(t.$('#fName'), '我的自酿糖浆');
+  ok(t.$('.fsug-item.fempty'), '未收录的原料给出提示');
+}
+
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
 process.exit(fail ? 1 : 0);
