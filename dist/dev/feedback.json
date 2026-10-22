@@ -1,0 +1,36 @@
+[
+  {
+    "note": "库存估值那个数字想加个货币符号和「约」字",
+    "priority": 2,
+    "selector": "main#app > div.stats:nth-of-type(1) > div.stat:nth-of-type(3) > div.v:nth-of-type(2)",
+    "selText": "0 种",
+    "view": "cabinet",
+    "url": "http://localhost:8080/",
+    "viewport": {
+      "w": 1280,
+      "h": 720,
+      "dpr": 1
+    },
+    "ts": 1792663014905,
+    "status": "open",
+    "id": "fb1792663014907",
+    "at": "2026-10-22T09:56:54.907Z"
+  },
+  {
+    "note": "库存估值那个数字想加个货币符号和「约」字",
+    "priority": 2,
+    "selector": "main#app > div.stats:nth-of-type(1) > div.stat:nth-of-type(3) > div.v:nth-of-type(2)",
+    "selText": "0 种",
+    "view": "cabinet",
+    "url": "http://localhost:8080/",
+    "viewport": {
+      "w": 1280,
+      "h": 720,
+      "dpr": 1
+    },
+    "ts": 1792663053237,
+    "status": "open",
+    "id": "fb1792663053240",
+    "at": "2026-10-22T09:57:33.240Z"
+  }
+]

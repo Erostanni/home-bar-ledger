@@ -19,7 +19,7 @@
   .fb-badge{position:absolute;top:-4px;right:-4px;min-width:19px;height:19px;border-radius:10px;background:#c0553f;color:#fff;
     font-size:11px;display:grid;place-items:center;padding:0 5px;font-weight:700;border:2px solid #1d1712}
   .fb-panel{position:fixed;right:16px;bottom:72px;width:340px;max-height:72vh;background:#1d1712;border:1px solid #3a2f24;
-    border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden}
+    border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden;z-index:9998}
   .fb-panel.open{display:flex}
   .fb-head{padding:12px 14px;border-bottom:1px solid #3a2f24;display:flex;justify-content:space-between;align-items:center}
   .fb-head b{font-size:13.5px;color:#ece3d5}
@@ -71,7 +71,13 @@
   panel.innerHTML = `
     <div class="fb-head"><b>反馈</b><span id="fb-count">0 条待处理</span></div>
     <div id="fb-links" style="padding:8px 14px 0"></div>
-    <div class="fb-body" id="fb-list"></div>`;
+    <div class="fb-body" id="fb-list"></div>
+    <div style="padding:9px 14px;border-top:1px solid #3a2f24;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="fb-btn2" id="fb-copy">复制全部反馈</button>
+      <button class="fb-btn2" id="fb-copy-last">复制最新一条</button>
+      <div style="flex:1"></div>
+      <button class="fb-btn2" id="fb-clear">清空</button>
+    </div>`;
   document.body.appendChild(panel);
 
   const pop = document.createElement('div');
@@ -269,6 +275,42 @@
       window.open(u, '_blank');
       say('已开 GitHub Issue，确认后 agent 就能收到');
     }
+  };
+
+  function toText(it) {
+    return [
+      '优先级: ' + priName(it.priority) + ' | 视图: ' + (it.view || '?'),
+      '意见  : ' + (it.note || '(无文字)'),
+      '元素  : ' + (it.selText || ''),
+      '选择器: ' + (it.sel || it.selector || ''),
+      '视口  : ' + (it.viewport ? it.viewport.w + '×' + it.viewport.h : ''),
+      '时间  : ' + new Date(it.ts || Date.now()).toLocaleString('zh-CN'),
+    ].join('\n');
+  }
+  async function copyText(txt) {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(txt);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); ta.remove();
+      }
+      say('已复制，粘贴给 agent 即可');
+    } catch (e) { say('复制失败，请手动选中'); }
+  }
+  document.getElementById('fb-copy').onclick = () => {
+    if (!items.length) { say('还没有反馈'); return; }
+    copyText('【家庭调酒台账 · 反馈 ' + items.length + ' 条】\n\n' +
+      items.map((it, i) => '--- #' + (i + 1) + ' ---\n' + toText(it)).join('\n\n'));
+  };
+  document.getElementById('fb-copy-last').onclick = () => {
+    if (!items.length) { say('还没有反馈'); return; }
+    copyText(toText(items[items.length - 1]));
+  };
+  document.getElementById('fb-clear').onclick = () => {
+    items = []; saveLocal(); renderList(); say('已清空本地列表');
   };
 
   function currentView() {
