@@ -286,7 +286,7 @@
       } catch (e) { blocked = true; }
     }
 
-    if (location.protocol !== 'file:' && typeof fetch === 'function') {
+    if (window.__FB_DEV__ && typeof fetch === 'function') {
       try {
         await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
       } catch (e) { /* 本地已存 */ }
@@ -372,7 +372,7 @@
     // repo 解析完成后刷新发送逻辑的判断
     window.__FB_REPO_READY__ = true;
   })();
-  if (location.protocol !== 'file:' && typeof fetch === 'function') fetch('/__feedback').then(r => r.json()).then(list => {
+  if (window.__FB_DEV__ && typeof fetch === 'function') fetch('/__feedback').then(r => r.json()).then(list => {
     if (Array.isArray(list) && list.length) {
       const merged = [...items];
       for (const it of list) if (!merged.some(x => x.id === it.id)) merged.push(it);

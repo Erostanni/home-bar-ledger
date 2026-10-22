@@ -200,7 +200,7 @@ const server = http.createServer((req, res) => {
     if (ext === '.html') {
       let html = buf.toString('utf8');
       html = injectFeedback(html);
-      html = html.replace('</head>', '<script>/*dev livereload*/new EventSource("/__livereload").addEventListener("reload",()=>location.reload());</script></head>');
+      html = html.replace('</head>', '<script>/*dev livereload*/window.__FB_DEV__=true;new EventSource("/__livereload").addEventListener("reload",()=>location.reload());</script></head>');
       res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' });
       return res.end(html);
     }
