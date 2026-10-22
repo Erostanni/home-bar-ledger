@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 逻辑测试 + 浏览器端到端
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: npm install
+
+      - name: 重新构建 index.html
+        run: |
+          python3 build/compile.py
+          git diff --exit-code -- index.html || {
+            echo "❌ index.html 与源码不一致，请运行 python3 build/compile.py 后提交";
+            exit 1;
+          }
+
+      - name: 逻辑测试（jsdom，85 项）
+        run: npm test
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: 浏览器端到端（file:// 直开 / 打印 / 持久化）
+        run: npm run test:browser
+
+      - name: 截图
+        run: npm run shots
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: preview/
+          if-no-files-found: ignore

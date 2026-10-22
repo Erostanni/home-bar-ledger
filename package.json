@@ -1,0 +1,28 @@
+{
+  "name": "home-bar-ledger",
+  "version": "1.0.0",
+  "description": "家庭调酒台账 —— 单文件纯前端的家庭酒吧消耗账本，库存自动扣减，月底出复古酒吧收据",
+  "private": false,
+  "license": "MIT",
+  "keywords": [
+    "cocktail",
+    "home-bar",
+    "recipe",
+    "ledger",
+    "inventory",
+    "vanilla-js",
+    "offline-first"
+  ],
+  "scripts": {
+    "build": "python3 build/compile.py",
+    "test": "node build/test.js",
+    "test:browser": "node build/browser-test.js",
+    "test:all": "npm run test && npm run test:browser",
+    "shots": "node build/shots.js",
+    "serve": "python3 -m http.server 8080"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "playwright": "^1.64.1"
+  }
+}

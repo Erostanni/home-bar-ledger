@@ -1,0 +1,32 @@
+# 依赖
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 构建缓存
+__pycache__/
+*.py[cod]
+.mypy_cache/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*~
+
+# 本地备份（应用导出的 JSON 备份不要提交）
+*.local.json
+home-bar-ledger-*.json
+
+# 临时下载
+data/*.tar.gz
+data/ba.tar.gz
+
+# dev 反馈记录（本地，不入库）
+dev/feedback.json
