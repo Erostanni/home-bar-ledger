@@ -30,3 +30,6 @@ data/ba.tar.gz
 
 # dev 反馈记录（本地，不入库）
 dev/feedback.json
+
+# NFS 临时文件
+dev/.nfs*
