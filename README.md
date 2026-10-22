@@ -136,6 +136,32 @@
 
 ---
 
+## 本地开发
+
+```bash
+git clone https://github.com/Erostanni/home-bar-ledger.git
+cd home-bar-ledger
+npm run dev        # → http://localhost:8080
+```
+
+改 `build/app.template.html` → **自动重新编译 + 浏览器自动刷新**（约 1 秒），不用手动跑任何命令。
+页内点右下角 ✎ 提意见，反馈直接落盘 `dev/feedback.json`，或一键开成 GitHub Issue。
+
+详细说明和「不依赖 AI 的本地工具清单」见 **[docs/LOCAL_DEV.md](docs/LOCAL_DEV.md)**。
+
+---
+
+## 数据与隐私
+
+**你的酒柜、每一杯记录、月底账单，全部存在你自己浏览器的 localStorage 里。**
+
+- 不会上传到任何服务器，没有账号、没有数据库、没有同步
+- 应用本身**零外部请求**（用 `file://` 打开时只读本地那一个文件）
+- 唯一的对外动作：你主动点「提交反馈」时，浏览器会打开一个 GitHub Issue 页面
+- 换设备或换域名：localStorage 不互通，用「导出备份」/「导入」迁移
+
+---
+
 ## 目录结构
 
 ```
@@ -152,6 +178,9 @@ build/
   browser-test.js       ← 真实浏览器验证（file:// 直开 / 打印 / 持久化）
   shots.js              ← 截图
 data/                   ← 上游基础词表 + Schema + 出处说明
+docs/
+  ├── ROADMAP.md        ← 一个月升级计划
+  └── LOCAL_DEV.md      ← 本地开发 + 本地工具清单
 .github/workflows/ci.yml ← CI：构建校验 + 测试 + 截图
 ```
 
