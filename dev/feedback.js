@@ -286,9 +286,11 @@
       } catch (e) { blocked = true; }
     }
 
-    try {
-      await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
-    } catch (e) { /* 本地已存 */ }
+    if (location.protocol !== 'file:' && typeof fetch === 'function') {
+      try {
+        await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+      } catch (e) { /* 本地已存 */ }
+    }
 
     if (blocked) say('浏览器拦截了新窗口 —— 请允许弹出窗口，或用「复制最新一条」发给我');
     else say(issueUrl ? '已开 GitHub Issue，确认后 agent 就能收到' : '已提交，反馈已送到 agent');
@@ -359,7 +361,7 @@
   (async () => {
     const qs2 = new URLSearchParams(location.search);
     let repo = qs2.get('repo') || (window.__FB_REPO__ || '');
-    if (!repo) {
+    if (!repo && location.protocol !== 'file:' && typeof fetch === 'function') {
       try {
         const r = await fetch('version.json', { cache: 'no-store' });
         if (r.ok) { const v = await r.json(); if (v && v.repo) repo = v.repo; }
@@ -370,7 +372,7 @@
     // repo 解析完成后刷新发送逻辑的判断
     window.__FB_REPO_READY__ = true;
   })();
-  fetch('/__feedback').then(r => r.json()).then(list => {
+  if (location.protocol !== 'file:' && typeof fetch === 'function') fetch('/__feedback').then(r => r.json()).then(list => {
     if (Array.isArray(list) && list.length) {
       const merged = [...items];
       for (const it of list) if (!merged.some(x => x.id === it.id)) merged.push(it);
