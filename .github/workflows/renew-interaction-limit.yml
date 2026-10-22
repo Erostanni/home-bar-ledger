@@ -1,15 +1,14 @@
 name: 维持 Issue 互动限制
 
-# GitHub 的 interaction-limits 会在 24 小时后过期，
-# 过期后任何人都能提 Issue。这个 workflow 每天自动续期。
+# GitHub 的 interaction-limits 会在 24 小时后过期，过期后任何人都能提 Issue。
+# 这个 workflow 每天自动续期一次。
+#
+# 注意：GITHUB_TOKEN 的 permissions 里没有 administration 键（写了会导致整个
+# workflow 被判为无效），所以这里依赖仓库 secret 里的 PAT。
 on:
   schedule:
     - cron: '17 3 * * *'     # 每天 03:17 UTC
-  workflow_dispatch:          # 也可以手动触发
-
-permissions:
-  administration: write      # 改 interaction-limits 需要
-  contents: read
+  workflow_dispatch:          # 也可手动触发
 
 jobs:
   renew:
@@ -18,12 +17,16 @@ jobs:
     steps:
       - name: 应用限制
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 仓库 secret：Settings → Secrets → Actions → New repository secret
+          RENEW_TOKEN: ${{ secrets.RENEW_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          echo "仓库: $REPO"
+          if [ -z "$RENEW_TOKEN" ]; then
+            echo "::error::缺少 secret RENEW_TOKEN，请在仓库 Settings → Secrets → Actions 里添加一个带 administration 写权限的 fine-grained PAT"
+            exit 1
+          fi
           resp=$(curl -sS -w '\n%{http_code}' -X PUT \
-            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Authorization: Bearer $RENEW_TOKEN" \
             -H "Accept: application/vnd.github+json" \
             -H "Content-Type: application/json" \
             "https://api.github.com/repos/$REPO/interaction-limits" \
@@ -33,10 +36,9 @@ jobs:
           echo "HTTP $code"
           echo "$body"
           if [ "$code" != "200" ]; then
-            echo "::error::续期失败，仓库的 Issue 限制可能在 24 小时后失效"
+            echo "::error::续期失败，仓库的 Issue 限制将在 24 小时后失效"
             exit 1
           fi
-          # 顺手确认限制确实生效
           limit=$(echo "$body" | python3 -c "import sys,json;print(json.load(sys.stdin).get('limit',''))" 2>/dev/null)
           if [ "$limit" != "collaborators_only" ]; then
             echo "::error::返回的 limit 不符合预期: $limit"
