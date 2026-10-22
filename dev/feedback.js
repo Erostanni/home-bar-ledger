@@ -229,17 +229,21 @@
 
   // 反馈出口：优先 POST 到 dev server；配置了 repo 时可改为开 GitHub Issue
   const qs = new URLSearchParams(location.search);
-  const REPO = qs.get('repo') || (window.__FB_REPO__ || '');
-  const GH = REPO ? 'https://github.com/' + REPO + '/issues/new' : '';
+  // ⚠️ repo 是异步解析的，不能在这里固化 —— 必须在点击时实时读取
+  function ghBase() {
+    const repo = window.__FB_REPO_RESOLVED__ || '';
+    return repo ? 'https://github.com/' + repo + '/issues/new' : '';
+  }
 
   document.getElementById('fb-send').onclick = async () => {
     if (!sel) return;
+    const picked = sel;              // 先留住，sel 马上要清空
     const note = document.getElementById('fb-note').value.trim();
     const item = {
       note,
       priority: pri,
-      selector: sel.path,
-      selText: sel.text,
+      selector: picked.path,
+      selText: picked.text,
       view: currentView(),
       url: location.href,
       viewport: { w: window.innerWidth, h: window.innerHeight, dpr: window.devicePixelRatio },
@@ -251,11 +255,10 @@
     renderList();
     pop.classList.remove('open');
     sel = null;
-    say('已提交，反馈已送到 agent');
-    try {
-      await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
-    } catch (e) { /* 本地已存 */ }
 
+    // ---- 组装 GitHub Issue（全部同步完成）----
+    const GH = ghBase();
+    let issueUrl = '';
     if (GH) {
       const body = [
         '### ' + (note || '(无文字描述)'),
@@ -264,17 +267,31 @@
         '| --- | --- |',
         '| 优先级 | ' + priName(pri) + ' |',
         '| 视图 | ' + currentView() + ' |',
-        '| 元素文本 | ' + (sel.text || '') + ' |',
-        '| CSS 选择器 | `' + sel.path + '` |',
+        '| 元素文本 | ' + (picked.text || '') + ' |',
+        '| CSS 选择器 | `' + picked.path + '` |',
         '| 视口 | ' + window.innerWidth + '×' + window.innerHeight + ' |',
         '',
         '<!-- 由应用内反馈组件自动生成 -->',
       ].join('\n');
-      const u = GH + '?title=' + encodeURIComponent('[反馈] ' + (sel.text || '未命名元素').slice(0, 40) + ' — ' + (note || '').slice(0, 60))
+      issueUrl = GH + '?title=' + encodeURIComponent('[反馈] ' + (picked.text || '未命名元素').slice(0, 40) + ' — ' + (note || '').slice(0, 60))
         + '&body=' + encodeURIComponent(body);
-      window.open(u, '_blank');
-      say('已开 GitHub Issue，确认后 agent 就能收到');
     }
+
+    // ⚠️ 必须同步用 <a> 触发：用户手势一旦跨过 await 就会失效，弹窗会被拦截
+    let blocked = false;
+    if (issueUrl) {
+      try {
+        const w = window.open(issueUrl, '_blank');
+        blocked = !w;
+      } catch (e) { blocked = true; }
+    }
+
+    try {
+      await fetch('/__feedback', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(item) });
+    } catch (e) { /* 本地已存 */ }
+
+    if (blocked) say('浏览器拦截了新窗口 —— 请允许弹出窗口，或用「复制最新一条」发给我');
+    else say(issueUrl ? '已开 GitHub Issue，确认后 agent 就能收到' : '已提交，反馈已送到 agent');
   };
 
   function toText(it) {
@@ -327,20 +344,32 @@
     }
   });
 
-  function renderLinks() {
+  function renderLinks(repo) {
     const box = document.getElementById('fb-links');
     if (!box) return;
-    const qs2 = new URLSearchParams(location.search);
-    const repo = qs2.get('repo') || (window.__FB_REPO__ || '');
     if (!repo) { box.style.display = 'none'; return; }
+    const q = encodeURIComponent('is:issue in:title "[反馈]"');
     box.innerHTML = '<a class="fb-btn2" style="display:inline-block;text-decoration:none" target="_blank" '
-      + 'href="https://github.com/' + repo + '/issues?q=label:%E5%8F%8D%E9%A6%88">查看全部反馈 Issue</a>';
+      + 'href="https://github.com/' + repo + '/issues?q=' + q + '">查看全部反馈 Issue</a>';
   }
 
   /* ---------- 初始加载 ---------- */
   items = loadLocal();
   renderList();
-  renderLinks();
+  (async () => {
+    const qs2 = new URLSearchParams(location.search);
+    let repo = qs2.get('repo') || (window.__FB_REPO__ || '');
+    if (!repo) {
+      try {
+        const r = await fetch('version.json', { cache: 'no-store' });
+        if (r.ok) { const v = await r.json(); if (v && v.repo) repo = v.repo; }
+      } catch (e) { }
+    }
+    window.__FB_REPO_RESOLVED__ = repo;
+    renderLinks(repo);
+    // repo 解析完成后刷新发送逻辑的判断
+    window.__FB_REPO_READY__ = true;
+  })();
   fetch('/__feedback').then(r => r.json()).then(list => {
     if (Array.isArray(list) && list.length) {
       const merged = [...items];
