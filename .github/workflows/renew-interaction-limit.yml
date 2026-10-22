@@ -1,0 +1,45 @@
+name: 维持 Issue 互动限制
+
+# GitHub 的 interaction-limits 会在 24 小时后过期，
+# 过期后任何人都能提 Issue。这个 workflow 每天自动续期。
+on:
+  schedule:
+    - cron: '17 3 * * *'     # 每天 03:17 UTC
+  workflow_dispatch:          # 也可以手动触发
+
+permissions:
+  administration: write      # 改 interaction-limits 需要
+  contents: read
+
+jobs:
+  renew:
+    name: 续期「仅协作者可创建 Issue」
+    runs-on: ubuntu-latest
+    steps:
+      - name: 应用限制
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          echo "仓库: $REPO"
+          resp=$(curl -sS -w '\n%{http_code}' -X PUT \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Content-Type: application/json" \
+            "https://api.github.com/repos/$REPO/interaction-limits" \
+            -d '{"limit":"collaborators_only"}')
+          code=$(echo "$resp" | tail -1)
+          body=$(echo "$resp" | head -n -1)
+          echo "HTTP $code"
+          echo "$body"
+          if [ "$code" != "200" ]; then
+            echo "::error::续期失败，仓库的 Issue 限制可能在 24 小时后失效"
+            exit 1
+          fi
+          # 顺手确认限制确实生效
+          limit=$(echo "$body" | python3 -c "import sys,json;print(json.load(sys.stdin).get('limit',''))" 2>/dev/null)
+          if [ "$limit" != "collaborators_only" ]; then
+            echo "::error::返回的 limit 不符合预期: $limit"
+            exit 1
+          fi
+          echo "✅ 已续期，仅协作者可创建 Issue"
