@@ -73,6 +73,22 @@ function injectFeedback(html) {
   );
 }
 
+/* ---------------- 自动重建 ---------------- */
+/** 模板改动时自动重新编译 index.html —— 这样改源码就能直接刷新，不用手动跑 compile.py */
+function rebuild(reason) {
+  const tpl = path.join(ROOT, 'build', 'app.template.html');
+  if (!fs.existsSync(tpl)) return false;
+  const before = (() => { try { return fs.statSync(path.join(ROOT, 'index.html')).mtimeMs; } catch (e) { return 0; } })();
+  try {
+    execSync(`python3 "${path.join(ROOT, 'build', 'compile.py')}"`, { cwd: ROOT, stdio: 'ignore' });
+    const after = fs.statSync(path.join(ROOT, 'index.html')).mtimeMs;
+    if (after !== before) { log('已重新构建 index.html（' + reason + '）'); return true; }
+  } catch (e) {
+    log('构建失败：', (e.stderr || e.message || '').toString().slice(0, 300));
+  }
+  return false;
+}
+
 /* ---------------- 文件监听 ---------------- */
 let timer = null;
 function scheduleReload(reason) {
@@ -83,7 +99,23 @@ function scheduleReload(reason) {
   }, 200);
 }
 
+/** 模板变了 → 先重建，再广播 */
+let lastTplMtime = 0;
+function checkTemplate() {
+  const tpl = path.join(ROOT, 'build', 'app.template.html');
+  if (!fs.existsSync(tpl)) return;
+  const m = fs.statSync(tpl).mtimeMs;
+  if (m !== lastTplMtime) {
+    const first = lastTplMtime === 0;
+    lastTplMtime = m;
+    if (!first) rebuild('app.template.html');
+  }
+}
+
 function watch() {
+  // 无论用 inotify 还是轮询，都先做一次模板检查
+  checkTemplate();
+
   try {
     execSync('command -v inotifywait', { stdio: 'ignore' });
     const dirs = WATCH.filter(w => fs.existsSync(path.join(ROOT, w)));
@@ -100,10 +132,17 @@ function watch() {
         const st = fs.statSync(p);
         cur += w + ':' + (st.isDirectory() ? st.mtimeMs : st.mtimeMs) + ';';
       }
-      if (sig && cur !== sig) scheduleReload('轮询检测');
+      if (sig && cur !== sig) {
+        const changed = cur !== sig;
+        checkTemplate();
+        if (changed) scheduleReload('轮询检测');
+      }
       sig = cur;
     }, 700);
   }
+
+  // 兜底：无论哪种监听方式，都定期检查模板是否改动（inotify 分支也靠它）
+  setInterval(checkTemplate, 1200);
 }
 
 /* ---------------- 服务器 ---------------- */

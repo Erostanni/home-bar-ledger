@@ -19,7 +19,12 @@
     "test:browser": "node build/browser-test.js",
     "test:all": "npm run test && npm run test:browser",
     "shots": "node build/shots.js",
-    "serve": "python3 -m http.server 8080"
+    "serve": "python3 -m http.server 8080",
+    "dev": "node dev/server.js 8080",
+    "dev:watch": "node dev/server.js 8080",
+    "rebuild": "python3 build/compile.py",
+    "feedback": "bash dev/watch-feedback.sh",
+    "issues": "bash dev/watch-issues.sh"
   },
   "devDependencies": {
     "jsdom": "^29.1.1",
