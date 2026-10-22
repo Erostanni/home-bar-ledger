@@ -6,7 +6,7 @@
 
 记录每一杯酒用了多少料 → 库存自动扣减 → 月底出一张复古酒吧收据
 
-[![CI](https://github.com/your-username/home-bar-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/home-bar-ledger/actions/workflows/ci.yml)
+[![CI](https://github.com/Erostanni/home-bar-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/Erostanni/home-bar-ledger/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![无依赖](https://img.shields.io/badge/runtime-0%20dependencies-48c78b)]()
 
@@ -103,9 +103,20 @@
 
 1. 仓库 **Settings → Pages**
 2. **Source** 选 `Deploy from a branch`，分支选 `main`、目录选 `/ (root)`
-3. 打开 `https://<用户名>.github.io/home-bar-ledger/`
+3. 打开 `https://erostanni.github.io/home-bar-ledger/`
 
 > 注意：走 http(s) 域名时，localStorage 按域名隔离，换域名数据不通 —— 用「导出备份」迁移。
+
+### 在页面上提意见
+
+应用右下角有 **✎ 按钮**（快捷键 `F`）：
+
+1. 进入反馈模式，鼠标划过元素会**金色高亮**
+2. 点击目标元素 → 写意见 → 选优先级 → 提交
+3. 会自动打开一个**预填好的 GitHub Issue**，确认后意见就进仓库了
+4. 或者点「复制最新一条」，直接粘贴给 agent
+
+反馈里带精确的 CSS 选择器，agent 能直接定位到要改的节点。
 
 ---
 
