@@ -17,6 +17,13 @@ if '/*__DATA__*/' not in tpl:
     sys.exit(1)
 
 out = tpl.replace('/*__DATA__*/', 'const DATA = ' + blob + ';')
+
+# 注入反馈组件（内联，产物零外部依赖，file:// 与 Pages 都能用）
+fb_path = os.path.join(HERE, '..', 'dev', 'feedback.js')
+fb = open(fb_path, encoding='utf-8').read()
+if '/*__FEEDBACK_JS__*/' not in out:
+    print('模板缺少 /*__FEEDBACK_JS__*/ 占位符', file=sys.stderr); sys.exit(1)
+out = out.replace('/*__FEEDBACK_JS__*/', fb)
 out_path = os.path.join(ROOT, 'index.html')
 open(out_path, 'w', encoding='utf-8').write(out)
 

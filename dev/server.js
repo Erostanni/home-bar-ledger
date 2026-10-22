@@ -66,7 +66,8 @@ function writeFeedback(list) {
 
 /* ---------------- 注入 ---------------- */
 function injectFeedback(html) {
-  if (html.includes('__FEEDBACK_WIDGET__')) return html;
+  // 反馈组件已由 compile.py 内联进产物，这里只做兜底
+  if (html.includes('fb-root') || html.includes('__FEEDBACK_JS__')) return html;
   return html.replace(
     '</body>',
     `<script src="/__dev/feedback.js"></script>\n</body>`
