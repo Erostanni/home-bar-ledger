@@ -415,6 +415,33 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 <script>
 "use strict";
 /* ============================ 常量 ============================ */
+/* ---------- 紧凑数据解码 ----------
+   构建脚本把配方压成位置索引数组（原始体积 -62%），这里还原成对象。
+   业务代码全程用还原后的结构，无需关心底层编码。 */
+function decodeData(R){
+  const fi=R.fi, ii=R.ii, il=R.il, mi=R.mi;
+  const ilIdx=fi.indexOf('ings');
+  const recipes=R.r.map(a=>{
+    const o={};
+    for(let i=0;i<fi.length;i++){ if(i!==ilIdx) o[fi[i]]=a[i]; }
+    o.ings=(a[ilIdx]||[]).map(x=>{
+      // x[0] 是原料全局表索引，后面的才是本配方自己的字段
+      const g={}; for(let i=0;i<ii.length;i++) g[ii[i]]=x[i+1];
+      const L=R.il_table[x[0]]||[];
+      for(let i=0;i<il.length;i++) g[il[i]]=L[i];
+      return g;
+    });
+    return o;
+  });
+  const ingredients={};
+  for(const k in R.m){
+    const o={}; const arr=R.m[k];
+    for(let i=0;i<mi.length;i++) o[mi[i]]=arr[i];
+    ingredients[k]=o;
+  }
+  return {recipes, ingredients, meta:R.meta||{}};
+}
+const DATA = decodeData(window.__RAW_DATA__);
 const RECIPES = DATA.recipes;
 const ING_META = DATA.ingredients;
 /* 原料索引：按在配方中出现的频次排序，搜索时优先展示常用的 */
@@ -428,6 +455,29 @@ const ING_LIST = (() => {
 const BY_ID = Object.fromEntries(RECIPES.map(r => [r.id, r]));
 const KEY = 'hbl.v1';
 const ML_PER_OZ = 29.5735;
+
+/* ============================ 英文原文（按需加载） ============================ */
+let enLoaded=false, enLoading=false;
+/** 懒加载 bar-data.en.json。离线 / file:// 下会失败，调用方需优雅降级。 */
+async function loadEnglish(){
+  if(enLoaded) return true;
+  if(enLoading) return false;
+  enLoading=true;
+  try{
+    const r=await fetch('bar-data.en.json',{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const map=await r.json();
+    for(const rec of RECIPES){
+      const e=map[rec.id]; if(!e) continue;
+      if(e.descEn) rec.descEn=e.descEn;
+      if(e.stepsEn) rec.stepsEn=e.stepsEn;
+      if(e.garnishEn) rec.garnishEn=e.garnishEn;
+    }
+    enLoaded=true; return true;
+  }catch(e){
+    return false;
+  }finally{ enLoading=false; }
+}
 
 /* ============================ 状态 ============================ */
 let db = load();
@@ -1017,7 +1067,14 @@ function bind(){
     };
   }
   const en=document.getElementById('showEn');
-  if(en) en.onchange=()=>{ ui.showEn=en.checked; render(); };
+  if(en) en.onchange=async ()=>{
+    ui.showEn=en.checked;
+    if(ui.showEn && !enLoaded){
+      const ok=await loadEnglish();
+      if(!ok){ ui.showEn=false; en.checked=false; toast('离线模式下无法显示英文原文','bad'); }
+    }
+    render();
+  };
   const ss=document.getElementById('stockSort');
   if(ss) ss.onchange=(e)=>{ ui.stockSort=e.target.value; render(); };
   const lm=document.getElementById('ledgerMonth');

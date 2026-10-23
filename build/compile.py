@@ -16,7 +16,7 @@ if '/*__DATA__*/' not in tpl:
     print('模板缺少 /*__DATA__*/ 占位符', file=sys.stderr)
     sys.exit(1)
 
-out = tpl.replace('/*__DATA__*/', 'const DATA = ' + blob + ';')
+out = tpl.replace('/*__DATA__*/', 'window.__RAW_DATA__ = ' + blob + ';')
 
 # 注入反馈组件（内联，产物零外部依赖，file:// 与 Pages 都能用）
 fb_path = os.path.join(HERE, '..', 'dev', 'feedback.js')
@@ -27,4 +27,4 @@ out = out.replace('/*__FEEDBACK_JS__*/', fb)
 out_path = os.path.join(ROOT, 'index.html')
 open(out_path, 'w', encoding='utf-8').write(out)
 
-print(f'✓ {out_path}  {os.path.getsize(out_path)/1024:.0f} KB  ·  {len(data["recipes"])} 配方 / {len(data["ingredients"])} 原料')
+print(f'✓ {out_path}  {os.path.getsize(out_path)/1024:.0f} KB  ·  {len(data["r"])} 配方 / {len(data["m"])} 原料')

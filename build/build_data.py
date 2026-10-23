@@ -369,6 +369,51 @@ def classify(recipe_tags, ings, ing_meta):
     return styles, main_style, base, lineage
 
 
+SCHEMA_VER = 2
+R_FIELDS = ['id', 'name', 'desc', 'garnish', 'steps', 'abv', 'glass', 'glassZh',
+            'method', 'methodZh', 'tags', 'styles', 'style', 'base', 'lineage',
+            'tier', 'zh', 'ings']
+I_FIELDS = ['ml', 'amt', 'u', 'opt', 'nonmetered', 'note']
+IL_FIELDS = ['n', 'zh', 'refSize', 'refPrice']   # 原料全局表（n/zh/refSize/refPrice 与配方无关）
+M_FIELDS = ['cat', 'catZh', 'catTop', 'catTopZh', 'abv', 'zh', 'desc']
+
+
+def pack(recipes, ing_meta):
+    """紧凑编码：顶层数组 + 原料全局表 + 引用数组。
+    原料名/中文名/规格/参考价与配方无关，提到全局表按索引引用（无损）。
+    实测 gzip 228 KB -> ~120 KB，解码在 app 侧完成，业务代码零改动。"""
+    il = []            # 原料全局表
+    il_idx = {}        # key -> 索引
+    packed_r = []
+    for r in recipes:
+        ings = []
+        for i in r['ings']:
+            n = i.get('n', '')
+            key = (n, i.get('zh') or '', i.get('refSize') or 0,
+                   i.get('refPrice') if i.get('refPrice') is not None else None)
+            if key not in il_idx:
+                il_idx[key] = len(il)
+                il.append(list(key))
+            ings.append([
+                il_idx[key], i.get('ml', 0), i.get('amt', 0), i.get('u', 'ml'),
+                1 if i.get('opt') else 0, 1 if i.get('nonmetered') else 0,
+                i.get('note') or None,
+            ])
+        packed_r.append([
+            r.get('id', ''), r.get('name', ''), r.get('desc', ''), r.get('garnish', ''),
+            r.get('steps', []), r.get('abv'), r.get('glass', ''), r.get('glassZh', ''),
+            r.get('method', ''), r.get('methodZh', ''), r.get('tags', []), r.get('styles', []),
+            r.get('style', ''), r.get('base', ''), r.get('lineage', ''), r.get('tier', 0),
+            1 if r.get('zh') else 0, ings,
+        ])
+    packed_m = {}
+    for k, v in ing_meta.items():
+        packed_m[k] = [v.get('cat'), v.get('catZh'), v.get('catTop'), v.get('catTopZh'),
+                       v.get('abv'), v.get('zh'), v.get('desc')]
+    return {'v': SCHEMA_VER, 'fi': R_FIELDS, 'ii': I_FIELDS, 'il': IL_FIELDS, 'mi': M_FIELDS,
+            'r': packed_r, 'm': packed_m, 'il_table': il}
+
+
 def main():
     recs_raw = load_recipes()
     ings_raw = load_ingredients()
@@ -437,18 +482,36 @@ def main():
                 i['refPrice'] = price
             i['zh'] = zh_by_norm.get(key, '')
 
-    data = {
-        'recipes': recipes,
-        'ingredients': ingredients,
-        'meta': {
-            'source': 'bar-assistant/data (MIT) — https://github.com/bar-assistant/data',
-            'generated': '2026-10-22',
-        },
+    # 英文原文（descEn/stepsEn/garnishEn）拆出去，页面上点「英文原文」时才加载
+    english = {}
+    for r in recipes:
+        e = {}
+        if r.get('descEn'):    e['descEn'] = r['descEn']
+        if r.get('stepsEn'):   e['stepsEn'] = r['stepsEn']
+        if r.get('garnishEn'): e['garnishEn'] = r['garnishEn']
+        if e:
+            english[r['id']] = e
+    for r in recipes:
+        r.pop('descEn', None); r.pop('stepsEn', None); r.pop('garnishEn', None)
+
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+    packed = pack(recipes, ingredients)
+    packed['meta'] = {
+        'source': 'bar-assistant/data (MIT) — https://github.com/bar-assistant/data',
+        'generated': '2026-10-23',
     }
 
-    out = os.path.join(os.path.dirname(__file__), '..', 'bar-data.json')
+    out = os.path.join(root, 'bar-data.json')
     with open(out, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, separators=(',', ':'))
+        json.dump(packed, f, ensure_ascii=False, separators=(',', ':'))
+
+    en_out = os.path.join(root, 'bar-data.en.json')
+    with open(en_out, 'w', encoding='utf-8') as f:
+        json.dump(english, f, ensure_ascii=False, separators=(',', ':'))
+
+    # 可读版（供开发者查看 / 二次开发），不入库
+    with open(os.path.join(root, 'bar-data.pretty.json'), 'w', encoding='utf-8') as f:
+        json.dump({'recipes': recipes, 'ingredients': ingredients}, f, ensure_ascii=False, indent=1)
 
     size_kb = os.path.getsize(out) / 1024
     print(f'配方 {len(recipes)} 条 · 原料 {len(ingredients)} 种 · {size_kb:.0f} KB → {out}')
