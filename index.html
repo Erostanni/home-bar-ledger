@@ -329,7 +329,9 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 弹窗 ---------- */
 .mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(3px);z-index:50;display:grid;place-items:center;padding:20px}
-.modal{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:100%;max-width:460px;max-height:88vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:100%;max-width:460px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal .body{overflow-y:auto;flex:1 1 auto;min-height:0}
+.modal header,.modal footer{flex:0 0 auto}
 .modal header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
 .modal header h3{margin:0;font-size:15px}
 .modal .body{padding:18px 20px}
@@ -419,8 +421,9 @@ html.no-motion *{animation:none !important;transition:none !important}
 .fcat i{font-style:normal;opacity:.6;margin-left:3px;font-size:10.5px}
 .fgridhead{font-size:10.5px;color:var(--mu2);margin-top:11px;letter-spacing:.3px}
 .fgridhead b{color:var(--mu);font-weight:500}
-.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:6px;margin-top:10px;
-  max-height:238px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px;margin-top:9px;
+  max-height:262px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);border-radius:8px}
 .fgrid::-webkit-scrollbar{width:6px}
 .fgrid::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
 .fcell{padding:7px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel3);cursor:pointer;transition:.12s;min-width:0}
@@ -1314,16 +1317,16 @@ function stockForm(name){
     </div>
     <div class="fld">
       <label class="lb">整瓶数</label>
-      <div class="row" style="gap:10px">
+      <div class="row" style="gap:8px">
         <div class="step"><button type="button" data-step="fUnopened" data-d="-1">−</button><input id="fUnopened" type="number" min="0" step="1" value="${s.unopened||0}"><button type="button" data-step="fUnopened" data-d="1">+</button></div>
         <div class="quick" data-quick="fUnopened" data-vals="1,2,3,6"></div>
       </div>
     </div>
     <div class="fld">
       <label class="lb">规格 (ml/瓶)</label>
-      <div class="row" style="gap:10px">
+      <div class="row" style="gap:8px">
         <div class="step"><button type="button" data-step="fSize" data-d="-25">−</button><input id="fSize" type="number" min="0" step="25" value="${s.sizeMl||''}"><button type="button" data-step="fSize" data-d="25">+</button></div>
-        <div class="quick" data-quick="fSize" data-vals="100,200,375,500,700,750,1000"></div>
+        <div class="quick" data-quick="fSize" data-vals="100,375,700,750,1000"></div>
       </div>
     </div>
     <div class="fld">
@@ -1461,7 +1464,6 @@ function stockForm(name){
       gridBox.innerHTML = list.map(x =>
         '<button class="fcell" data-n="'+esc(x.n)+'" title="'+esc(x.n)+'">'
         + '<div class="n">'+esc(x.z||x.n)+'</div>'
-        + (x.z ? '<div class="e">'+esc(x.n)+'</div>' : '')
         + '</button>').join('');
       gridBox.querySelectorAll('.fcell').forEach(el=>{
         el.onclick=()=>{ pick(el.dataset.n); };
@@ -2014,7 +2016,13 @@ render();
     </div>
     <div id="fb-links" style="padding:8px 14px 0"></div>
     <div style="padding:8px 14px 0;font-size:10.5px;color:#7d6c58;line-height:1.6">
-      提交后 agent 会逐条处理：修好会打「已修复」标签 + 关闭，并附上对应 commit。已处理的不会重复出现。
+      <b style="color:var(--mu)">怎么提交：</b>点「提交」会打开一个<b>已预填好的 GitHub 页面</b>，
+      <b>滚到底点「Create new issue」才算真正创建</b>（需已登录 GitHub）。<br>
+      没提交成功也别急 —— 用「复制最新一条」把内容粘给 agent 即可；
+      本地跑 <code>npm run dev</code> 时反馈会直接落盘，最可靠。
+    </div>
+    <div style="padding:6px 14px 0;font-size:10.5px;color:#7d6c58;line-height:1.6">
+      agent 处理完会打「已修复」标签 + 附 commit + 关闭 Issue；已处理的不会重复列出。
     </div>
     <div class="fb-body" id="fb-list"></div>
     <div style="padding:9px 14px;border-top:1px solid #3a2f24;display:flex;gap:6px;flex-wrap:wrap">
@@ -2238,7 +2246,7 @@ render();
     }
 
     if (blocked) say('浏览器拦截了新窗口 —— 请允许弹出窗口，或用「复制最新一条」发给我');
-    else if (issueUrl) say('已开 GitHub Issue，确认后 agent 就能收到 · 按 F 可继续操作应用');
+    else if (issueUrl) say('⚠️ GitHub 页面已打开 —— 记得点最下方的「Create new issue」才会真正提交 · 或用「复制最新一条」');
     else say('已提交，反馈已送到 agent · 按 F 可继续操作应用');
   };
 

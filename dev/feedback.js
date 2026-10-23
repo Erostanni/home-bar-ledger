@@ -78,7 +78,13 @@
     </div>
     <div id="fb-links" style="padding:8px 14px 0"></div>
     <div style="padding:8px 14px 0;font-size:10.5px;color:#7d6c58;line-height:1.6">
-      提交后 agent 会逐条处理：修好会打「已修复」标签 + 关闭，并附上对应 commit。已处理的不会重复出现。
+      <b style="color:var(--mu)">怎么提交：</b>点「提交」会打开一个<b>已预填好的 GitHub 页面</b>，
+      <b>滚到底点「Create new issue」才算真正创建</b>（需已登录 GitHub）。<br>
+      没提交成功也别急 —— 用「复制最新一条」把内容粘给 agent 即可；
+      本地跑 <code>npm run dev</code> 时反馈会直接落盘，最可靠。
+    </div>
+    <div style="padding:6px 14px 0;font-size:10.5px;color:#7d6c58;line-height:1.6">
+      agent 处理完会打「已修复」标签 + 附 commit + 关闭 Issue；已处理的不会重复列出。
     </div>
     <div class="fb-body" id="fb-list"></div>
     <div style="padding:9px 14px;border-top:1px solid #3a2f24;display:flex;gap:6px;flex-wrap:wrap">
@@ -302,7 +308,7 @@
     }
 
     if (blocked) say('浏览器拦截了新窗口 —— 请允许弹出窗口，或用「复制最新一条」发给我');
-    else if (issueUrl) say('已开 GitHub Issue，确认后 agent 就能收到 · 按 F 可继续操作应用');
+    else if (issueUrl) say('⚠️ GitHub 页面已打开 —— 记得点最下方的「Create new issue」才会真正提交 · 或用「复制最新一条」');
     else say('已提交，反馈已送到 agent · 按 F 可继续操作应用');
   };
 
