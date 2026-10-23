@@ -11,6 +11,9 @@
   --gold:#d9a441; --gold-d:#8a6420; --ok:#7fa35c; --warn:#d38b3a; --bad:#c0553f;
   --paper:#f6f1e4; --ink:#2b2620;
   --r:10px; --mono:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace;
+  --serif:"Playfair Display","Songti SC","STSong",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -31,6 +34,7 @@ body::after{
   background-size:260px 260px;
   background-repeat:repeat;
   opacity:var(--bgtex,.5);
+  transition:opacity .2s;
 }
 body.no-bgtex::after{display:none}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -49,15 +53,19 @@ a{color:var(--gold)}
   background:linear-gradient(145deg,var(--gold),var(--gold-d)); color:#1a1409;
   font-size:19px; font-weight:700; box-shadow:0 3px 12px rgba(217,164,65,.25);
 }
-.brand h1{margin:0;font-size:15px;letter-spacing:.5px;font-weight:650}
-.brand p{margin:0;font-size:9.5px;letter-spacing:2.6px;color:var(--mu2);font-family:var(--mono)}
-.tabs{display:flex;gap:4px;margin-left:auto;background:var(--panel);padding:4px;border-radius:var(--r);border:1px solid var(--line)}
+.brand h1{margin:0;font-size:18px;letter-spacing:.2px;font-weight:600;font-family:var(--serif);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.brand p{margin:0;font-size:8.5px;letter-spacing:3.4px;color:var(--mu2);font-family:var(--mono)}
+
+.tabs{display:flex;gap:2px;margin-left:auto;background:rgba(0,0,0,.28);padding:4px;
+  border-radius:11px;border:1px solid var(--line)}
 .tabs button{
-  padding:7px 16px;border-radius:7px;font-size:13.5px;color:var(--mu);
-  transition:.15s; white-space:nowrap;
+  padding:7px 17px;border-radius:8px;font-size:13px;color:var(--mu);
+  transition:.18s var(--ease); white-space:nowrap;letter-spacing:.3px;
 }
-.tabs button:hover{color:var(--tx);background:var(--panel2)}
-.tabs button.on{background:var(--gold);color:#1a1409;font-weight:600}
+.tabs button:hover{color:var(--tx);background:rgba(255,255,255,.04)}
+.tabs button.on{background:linear-gradient(180deg,#e0ae4b,#c89433);color:#1a1409;font-weight:600;
+  box-shadow:0 2px 10px rgba(217,164,65,.25)}
 .iconbtn{
   width:34px;height:34px;border-radius:8px;border:1px solid var(--line);color:var(--mu);
   display:grid;place-items:center;font-size:15px;transition:.15s;
@@ -65,12 +73,21 @@ a{color:var(--gold)}
 .iconbtn:hover{color:var(--gold);border-color:var(--line2);background:var(--panel)}
 
 main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20px 70px}
-.view{display:none;animation:fade .22s ease}
+.view{display:none;animation:fade .32s var(--ease)}
 .view.on{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.stockcard{animation:rise .34s var(--ease) backwards}
+@keyframes rise{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+.stockcard:nth-child(1){animation-delay:.02s}.stockcard:nth-child(2){animation-delay:.04s}
+.stockcard:nth-child(3){animation-delay:.06s}.stockcard:nth-child(4){animation-delay:.08s}
+.stockcard:nth-child(5){animation-delay:.1s}.stockcard:nth-child(6){animation-delay:.12s}
+.stockcard:nth-child(n+7){animation-delay:.14s}
 
 /* ---------- 通用块 ---------- */
-.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.card{background:linear-gradient(180deg,#201a15,#1a1510);border:1px solid var(--line);
+  border-radius:13px;padding:17px 19px;position:relative;
+  box-shadow:0 1px 0 rgba(255,255,255,.035) inset, 0 10px 26px rgba(0,0,0,.24)}
+.card h3{font-family:var(--serif);font-size:16px;letter-spacing:.2px}
 .card h3{margin:0 0 3px;font-size:14px;font-weight:600;letter-spacing:.3px}
 .card .sub{color:var(--mu2);font-size:11.5px;margin-bottom:14px;letter-spacing:.2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -117,6 +134,18 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stockfilter .sfcat.on{background:var(--gold);color:#1a1409;border-color:var(--gold);font-weight:600}
 .stockfilter select{padding:5px 9px;background:#16110d;border:1px solid var(--line);border-radius:7px;font-size:12px}
 .stockfilter .sfcount{font-size:11.5px;color:var(--mu2);margin-left:auto}
+/* 指标条：一条连贯的横条，比五张独立卡片更紧凑、更有节奏 */
+.metrics{display:flex;flex-wrap:wrap;background:linear-gradient(180deg,#1f1914,#1a1510);
+  border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:20px;
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 12px 30px rgba(0,0,0,.28)}
+.metric{flex:1 1 130px;padding:14px 18px 13px;position:relative;min-width:0}
+.metric + .metric::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--line)}
+.metric .k{font-size:9.5px;color:var(--mu2);letter-spacing:1.6px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.metric .v{font-family:var(--serif);font-size:27px;line-height:1.05;margin-top:5px;letter-spacing:-.5px;
+  display:flex;align-items:baseline;gap:3px}
+.metric .v small{font-family:var(--sans);font-size:11.5px;color:var(--mu);font-weight:400;letter-spacing:0}
+.metric.accent .v{color:var(--gold)}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px}
 .stat .k{font-size:10.5px;color:var(--mu2);letter-spacing:1.3px;text-transform:uppercase}
@@ -129,9 +158,14 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stocklist::-webkit-scrollbar{width:7px}
 .stocklist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
 .stocklist::-webkit-scrollbar-track{background:transparent}
-.stockcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;
-  position:relative;transition:.15s;display:flex;flex-direction:column;min-height:118px}
-.stockcard:hover{border-color:var(--line2)}
+.stockcard{background:linear-gradient(180deg,#201a15,#1b1611);border:1px solid var(--line);
+  border-radius:11px;padding:11px 13px 11px 16px;position:relative;transition:.18s var(--ease);
+  display:flex;flex-direction:column;min-height:112px;overflow:hidden}
+.stockcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2);
+  transition:.18s var(--ease)}
+.stockcard:hover{border-color:var(--line2);transform:translateY(-1px);
+  box-shadow:0 8px 22px rgba(0,0,0,.3)}
+.stockcard:hover::before{background:var(--gold)}
 .stockcard .nm{font-weight:600;font-size:13px;margin-bottom:2px;padding-right:50px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
 .stockcard .cat{font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
@@ -148,19 +182,28 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .iconmini:hover{color:var(--gold);border-color:var(--gold-d)}
 
 /* ---------- 调制 ---------- */
-.mixwrap{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
+.mixwrap{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.mixfrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px}
+.mixflabel{flex:0 0 28px;font-size:10.5px;color:var(--mu2);letter-spacing:.5px;padding-top:4px}
+.mixfrow .sfcat{font-size:11px;padding:2px 8px}
+.mixfrow .sfcat i{font-style:normal;opacity:.6;margin-left:3px;font-size:9.5px}
+.mixfrow .sfcat.on i{opacity:.75}
 .searchbar{position:relative;margin-bottom:11px}
 .searchbar .inp{padding-left:32px}
 .searchbar::before{content:"⌕";position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mu2);font-size:15px}
 .reclist{max-height:calc(100vh - 230px);overflow-y:auto;padding-right:4px}
 .reclist::-webkit-scrollbar{width:6px}
 .reclist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
-.recitem{padding:9px 12px;border-radius:8px;cursor:pointer;transition:.13s;border:1px solid transparent}
+.recitem{position:relative;padding:9px 12px 9px 48px;border-radius:8px;cursor:pointer;
+  transition:.13s;border:1px solid transparent}
 .recitem:hover{background:var(--panel)}
 .recitem.on{background:var(--panel2);border-color:var(--gold-d)}
 .recitem .rn{font-size:13.5px;font-weight:500}
 .recitem .rg{font-size:11px;color:var(--mu2);margin-top:1px}
-.recitem .rt{font-size:10.5px;color:var(--mu2);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap}
+.recitem .rt{font-size:10.5px;color:var(--mu2);margin-top:4px;display:flex;gap:4px;flex-wrap:wrap}
+.recitem .rt .pill{font-size:9.5px;padding:1px 6px}
+.recitem .recthumb{position:absolute;left:9px;top:10px;width:30px;height:30px;border-radius:6px;
+  image-rendering:pixelated;background:#0f0c0a;border:1px solid var(--line);object-fit:cover}
 .rd{display:grid;grid-template-columns:1fr auto;gap:8px 14px;padding:9px 0;border-bottom:1px dashed var(--line)}
 .rd:last-child{border-bottom:none}
 .rd .l1{font-size:13.5px}
@@ -169,6 +212,9 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stockbar{height:3px;background:#2a211a;border-radius:2px;margin-top:5px;overflow:hidden}
 .stockbar i{display:block;height:100%;background:var(--ok);border-radius:2px}
 .stockbar i.low{background:var(--bad)}
+.rcup{width:100%;max-width:260px;aspect-ratio:1;object-fit:cover;border-radius:12px;
+  border:1px solid var(--line);margin:12px 0 4px;display:block;image-rendering:pixelated;
+  background:#0f0c0a;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .steps{counter-reset:s;padding:0;margin:0;list-style:none}
 .steps li{counter-increment:s;position:relative;padding:7px 0 7px 30px;font-size:13.5px;color:#ddd3c4;border-bottom:1px dashed var(--line)}
 .steps li:last-child{border-bottom:none}
@@ -184,9 +230,12 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 台账 ---------- */
 .ledgerlist{display:flex;flex-direction:column;gap:9px}
-.led{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 15px;display:grid;grid-template-columns:auto 1fr auto auto;gap:12px;align-items:center}
-.led .num{font-family:var(--mono);font-size:11px;color:var(--mu2);width:46px}
-.led .nm{font-weight:600;font-size:13.5px}
+.led{background:linear-gradient(90deg,#201a15,#1b1611);border:1px solid var(--line);border-radius:11px;
+  padding:12px 15px;display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;
+  transition:.16s var(--ease)}
+.led:hover{border-color:var(--line2);background:linear-gradient(90deg,#241d17,#1e1813)}
+.led .num{font-family:var(--mono);font-size:10.5px;color:var(--gold-d);width:44px;letter-spacing:.5px}
+.led .nm{font-weight:600;font-size:14px;font-family:var(--serif);letter-spacing:.2px}
 .led .dt{font-family:var(--mono);font-size:11px;color:var(--mu2);margin-top:2px}
 .led .amt{font-family:var(--mono);font-size:12.5px;color:var(--mu);text-align:right;white-space:nowrap}
 .led .amt b{color:var(--tx);font-weight:600}
@@ -246,6 +295,27 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .modal header h3{margin:0;font-size:15px}
 .modal .body{padding:18px 20px}
 .modal footer{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:9px;justify-content:flex-end}
+.modal.wide{max-width:780px}
+.settabs{display:flex;gap:3px;padding:0 20px;border-bottom:1px solid var(--line);background:#1a1410}
+.settab{padding:10px 15px;border-radius:8px 8px 0 0;color:var(--mu);font-size:13px;
+  border:1px solid transparent;border-bottom:none;margin-bottom:-1px;transition:.12s}
+.settab:hover{color:var(--tx)}
+.settab.on{color:var(--gold);background:var(--panel);border-color:var(--line)}
+.setpanel{padding:16px 20px 4px}
+.setgrid{display:grid;grid-template-columns:1fr 268px;gap:22px;align-items:start}
+.setaside{position:sticky;top:0}
+.setaside .cap{font-size:10.5px;color:var(--mu2);letter-spacing:1.1px;margin-bottom:8px;text-transform:uppercase}
+.papers{display:flex;gap:7px;flex-wrap:wrap}
+.pchoice{width:46px;height:46px;border-radius:9px;border:2px solid var(--line);cursor:pointer;
+  display:grid;place-items:center;font-size:10px;color:#6b5d48;transition:.15s;position:relative}
+.pchoice:hover{border-color:var(--gold-d);transform:translateY(-1px)}
+.pchoice.on{border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,164,65,.16)}
+.pchoice.on::after{content:"✓";position:absolute;top:-7px;right:-7px;width:17px;height:17px;border-radius:50%;
+  background:var(--gold);color:#1a1409;font-size:10px;display:grid;place-items:center;font-weight:700}
+.pchoice.paper-classic{background:#f6f1e4}.pchoice.paper-white{background:#fff;color:#333}
+.pchoice.paper-kraft{background:#dccaa6}.pchoice.paper-dark{background:#16120e;color:#c9bda9}
+.previewwrap{background:#0f0c0a;border:1px solid var(--line);border-radius:10px;padding:14px;
+  max-height:60vh;overflow:auto}
 .fld{margin-bottom:13px}
 .fld .hint{font-size:11px;color:var(--mu2);margin-top:4px}
 .fcats{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
@@ -378,6 +448,10 @@ let ui = {
   stockCat: '全部',
   stockSort: 'name',
   mixTier: 'all',
+  mixStyle: '全部',
+  mixBase: '全部',
+  mixLineage: '全部',
+  mixLimit: 150,
 };
 
 function defaults(){
@@ -546,10 +620,8 @@ function viewCabinet(){
   const allNames=Object.keys(db.stock);
   // 分类筛选
   const catOf=n=>(ING_META[n]&&ING_META[n].catTopZh)||'其他';
-  const cats=[...new Set(allNames.map(catOf))].sort((a,b)=>{
-    if(a===ui.stockCat) return -1; if(b===ui.stockCat) return 1;
-    return a.localeCompare(b,'zh');
-  });
+  // 分类顺序固定（不随选中变化）—— 否则点一下按钮会让整排按钮跳动
+  const cats=[...new Set(allNames.map(catOf))].sort((a,b)=>a.localeCompare(b,'zh'));
   let names=allNames.filter(n=> ui.stockCat==='全部' || catOf(n)===ui.stockCat);
   // 排序
   const sort=ui.stockSort;
@@ -582,12 +654,12 @@ function viewCabinet(){
   }).join('');
 
   return `
-  <div class="stats">
-    <div class="stat"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
-    <div class="stat"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
-    <div class="stat"><div class="k">已开封</div><div class="v">${opened}<small> 种</small></div></div>
-    <div class="stat"><div class="k">库存估值</div><div class="v">${sv.known?money0(sv.value):'部分未标价'}</div></div>
-    <div class="stat"><div class="k">配方库</div><div class="v">${recipes}<small> 款</small></div></div>
+  <div class="metrics">
+    <div class="metric"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
+    <div class="metric"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
+    <div class="metric"><div class="k">已开封</div><div class="v">${opened}<small> 种</small></div></div>
+    <div class="metric accent"><div class="k">库存估值</div><div class="v">${sv.known?money0(sv.value):'部分未标价'}</div></div>
+    <div class="metric"><div class="k">配方库</div><div class="v">${RECIPES.length}<small> 款</small></div></div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -636,11 +708,35 @@ function renderCanMake(){
 }
 
 /* ============================ 视图：调制 ============================ */
+/* 某个维度的可选值 + 计数（只统计当前其它筛选条件下的） */
+function mixFacet(dim){
+  const cnt={};
+  for(const r of RECIPES){
+    if(ui.mixTier==='classic' && r.tier!==1) continue;
+    if(ui.mixStyle!=='全部' && dim!=='style' && r.style!==ui.mixStyle) continue;
+    if(ui.mixBase!=='全部' && dim!=='base' && r.base!==ui.mixBase) continue;
+    if(ui.mixLineage!=='全部' && dim!=='lineage' && r.lineage!==ui.mixLineage) continue;
+    cnt[r[dim]]=(cnt[r[dim]]||0)+1;
+  }
+  return Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
+}
+function mixFilterRow(label, key, facets){
+  const cur=ui[key];
+  return `<div class="mixfrow"><span class="mixflabel">${label}</span>
+    <div class="row wrap" style="gap:4px">
+      <button class="sfcat ${cur==='全部'?'on':''}" data-act="mixfilter" data-k="${key}" data-v="全部">全部</button>
+      ${facets.map(([v,n])=>`<button class="sfcat ${cur===v?'on':''}" data-act="mixfilter" data-k="${key}" data-v="${esc(v)}">${esc(v)}<i>${n}</i></button>`).join('')}
+    </div></div>`;
+}
+
 function viewMix(){
   const q=ui.mixQ.trim().toLowerCase();
   const tierOk = r => ui.mixTier==='all' || r.tier===1;
-  const list=RECIPES.filter(r=>{
+  let list=RECIPES.filter(r=>{
     if(!tierOk(r)) return false;
+    if(ui.mixStyle!=='全部' && r.style!==ui.mixStyle) return false;
+    if(ui.mixBase!=='全部' && r.base!==ui.mixBase) return false;
+    if(ui.mixLineage!=='全部' && r.lineage!==ui.mixLineage) return false;
     if(!q) return true;
     if(r.name.toLowerCase().includes(q)) return true;
     if(r.glass&&r.glass.toLowerCase().includes(q)) return true;
@@ -654,16 +750,25 @@ function viewMix(){
   <div class="mixwrap">
     <div class="card" style="position:sticky;top:74px">
       <div class="searchbar"><input class="inp" id="mixQ" placeholder="搜酒名 / 原料 / 杯型…" value="${esc(ui.mixQ)}"></div>
-      <div class="row wrap" style="gap:5px;margin-bottom:8px">
+      <div class="row wrap" style="gap:5px;margin-bottom:6px">
         <button class="sfcat ${ui.mixTier==='all'?'on':''}" data-act="mixtier" data-t="all">全部 ${RECIPES.length}</button>
         <button class="sfcat ${ui.mixTier==='classic'?'on':''}" data-act="mixtier" data-t="classic">经典 ${RECIPES.filter(r=>r.tier===1).length}</button>
       </div>
-      <div class="sub" style="margin-bottom:9px">${list.length} 款${untranslatedCount?` · ${untranslatedCount} 款待中文化`:''}</div>
+      ${mixFilterRow('风格', 'mixStyle', mixFacet('style'))}
+      ${mixFilterRow('基酒', 'mixBase', mixFacet('base'))}
+      ${mixFilterRow('谱系', 'mixLineage', mixFacet('lineage'))}
+      <div class="row spread" style="margin:8px 0 6px">
+        <div class="sub" style="margin:0">${list.length} 款${untranslatedCount?` · ${untranslatedCount} 款待中文化`:''}</div>
+        ${(ui.mixStyle!=='全部'||ui.mixBase!=='全部'||ui.mixLineage!=='全部'||ui.mixTier!=='all')?'<button class="btn sm" data-act="mixclear">清除筛选</button>':''}
+      </div>
       <div class="reclist" id="reclist">
-        ${list.map(r=>`<div class="recitem ${r.id===ui.mixSel?'on':''}" data-act="selrecipe" data-id="${r.id}">
+        ${list.slice(0,ui.mixLimit).map(r=>`<div class="recitem ${r.id===ui.mixSel?'on':''}" data-act="selrecipe" data-id="${r.id}">
+          ${r.img?`<img class="recthumb" src="assets/cocktails/${esc(r.img)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:''}
           <div class="rn">${esc(r.name)}${r.zh?'':' <span class="pill" title="中文翻译待补">EN</span>'}</div>
           <div class="rg">${esc(r.glassZh||r.glass||'')} · ${esc(r.methodZh||r.method||'')}${r.abv?' · '+r.abv+'%':''}</div>
+          <div class="rt"><span class="pill">${esc(r.style)}</span><span class="pill">${esc(r.base)}</span>${r.lineage==='经典'?'<span class="pill gold">经典</span>':''}</div>
         </div>`).join('') || '<div class="empty">没有匹配的配方</div>'}
+        ${list.length>ui.mixLimit? `<button class="btn sm" data-act="mixmore" style="width:100%;margin-top:9px">显示更多（还有 ${list.length-ui.mixLimit} 款）</button>`:''}
       </div>
     </div>
     <div id="recipeDetail">${sel?recipeDetail(sel):'<div class="card"><div class="empty">左侧选一款酒</div></div>'}</div>
@@ -712,6 +817,7 @@ function recipeDetail(r){
       </div>
     </div>
     ${!r.zh?'<div class="pill warn" style="margin:10px 0 0">此文暂未中文化 · 显示英文原文</div>':''}
+    ${r.img?`<img class="rcup" src="assets/cocktails/${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'">`:''}
     ${r.desc?`<p class="tiny dim" style="margin:10px 0 0;line-height:1.75">${esc(r.desc)}</p>`:''}
     ${showEn&&r.descEn?`<p class="tiny" style="margin:6px 0 0;line-height:1.7;color:var(--mu2);font-style:italic">${esc(r.descEn)}</p>`:''}
     ${r.tags&&r.tags.length?`<div class="row wrap" style="gap:5px;margin-top:9px">${r.tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}</div>`:''}
@@ -747,11 +853,11 @@ function viewLedger(){
   const vol=list.reduce((s,e)=>s+(e.totalMl||0),0);
 
   return `
-  <div class="stats">
-    <div class="stat"><div class="k">总杯数</div><div class="v">${cups}<small> 杯</small></div></div>
-    <div class="stat"><div class="k">记录条数</div><div class="v">${list.length}</div></div>
-    <div class="stat"><div class="k">原料消耗</div><div class="v">${Math.round(vol)}<small> ml</small></div></div>
-    <div class="stat"><div class="k">估算成本</div><div class="v">${money0(cost)}</div></div>
+  <div class="metrics">
+    <div class="metric accent"><div class="k">总杯数</div><div class="v">${cups}<small> 杯</small></div></div>
+    <div class="metric"><div class="k">记录条数</div><div class="v">${list.length}</div></div>
+    <div class="metric"><div class="k">原料消耗</div><div class="v">${Math.round(vol)}<small> ml</small></div></div>
+    <div class="metric"><div class="k">估算成本</div><div class="v">${money0(cost)}</div></div>
   </div>
   <div class="filterbar noprint">
     <select id="ledgerMonth">
@@ -775,8 +881,7 @@ function viewLedger(){
 }
 
 /* ============================ 视图：账单 ============================ */
-function viewStatement(){
-  const m=ui.stmtMonth;
+function statementData(m){
   const prev=monthShift(m,-1);
   const ents=db.ledger.filter(e=>eMonth(e)===m);
   const byIng={}, byRec={};
@@ -798,12 +903,17 @@ function viewStatement(){
   const prevEnts=db.ledger.filter(e=>eMonth(e)===prev);
   const prevCups=prevEnts.reduce((s,e)=>s+e.servings,0);
   const sv=stockValue();
+  const receiptNo='HBL-'+m.replace('-','')+'-'+String(ents.length).padStart(3,'0');
+  return {m,prev,ents,byIng,byRec,cups,vol,cost,unpriced,ingCost,ingRows,recRows,prevCups,sv,receiptNo};
+}
 
+function viewStatement(){
+  const m=ui.stmtMonth;
+  const D=statementData(m);
+  const ents=D.ents, byIng=D.byIng, ingRows=D.ingRows, recRows=D.recRows;
+  const cups=D.cups, vol=D.vol, cost=D.cost, unpriced=D.unpriced, ingCost=D.ingCost, sv=D.sv, prevCups=D.prevCups, receiptNo=D.reiptNo;
   const months=[...new Set(db.ledger.map(e=>eMonth(e)))].sort().reverse();
   if(!months.includes(m)) months.unshift(m);
-
-  const d=new Date();
-  const receiptNo = 'HBL-'+m.replace('-','')+'-'+String(ents.length).padStart(3,'0');
 
   return `
   <div class="noprint" style="margin-bottom:16px">
@@ -824,11 +934,11 @@ function viewStatement(){
     <div class="card noprint">
       <h3>${monthLabel(m)} 概览</h3>
       <div class="sub">与上月对比</div>
-      <div class="stats" style="margin:0">
-        <div class="stat"><div class="k">当月杯数</div><div class="v">${cups}<small> 杯</small></div></div>
-        <div class="stat"><div class="k">上月</div><div class="v">${prevCups}<small> 杯</small></div></div>
-        <div class="stat"><div class="k">原料消耗</div><div class="v">${Math.round(vol)}<small> ml</small></div></div>
-        <div class="stat"><div class="k">成本估算</div><div class="v">${money0(cost)}</div></div>
+      <div class="metrics" style="margin:0">
+        <div class="metric accent"><div class="k">当月杯数</div><div class="v">${cups}<small> 杯</small></div></div>
+        <div class="metric"><div class="k">上月</div><div class="v">${prevCups}<small> 杯</small></div></div>
+        <div class="metric"><div class="k">原料消耗</div><div class="v">${Math.round(vol)}<small> ml</small></div></div>
+        <div class="metric"><div class="k">成本估算</div><div class="v">${money0(cost)}</div></div>
       </div>
       <h3 style="margin-top:20px">酒单分布</h3>
       <div class="sub">当月出品</div>
@@ -893,7 +1003,7 @@ function receiptHTML(d){
     ${rc.note? `<div class="rnote" style="margin-top:14px;padding:9px 0;border-top:1px dashed currentColor;opacity:.82;
       font-size:11px;line-height:1.75;white-space:pre-wrap">${esc(rc.note)}</div>`:''}
     <div class="rbarcode"></div>
-    <div class="rfoot">谢谢惠顾 · THANK YOU<br>调得开心，别喝太多</div>
+    <div class="rfoot">${esc(rc.foot||'谢谢惠顾 · THANK YOU')}<br>${esc(rc.foot2||'调得开心，别喝太多')}</div>
   </div>`;
 }
 
@@ -947,7 +1057,10 @@ function handle(act,d){
     case 'export': return exportData();
     case 'seedbar': return seedBar();
     case 'stockcat': ui.stockCat = d.c; return render();
-    case 'mixtier': ui.mixTier = d.t; return render();
+    case 'mixtier': ui.mixTier = d.t; ui.mixLimit=150; return render();
+    case 'mixfilter': ui[d.k]=d.v; ui.mixLimit=150; return render();
+    case 'mixclear': ui.mixStyle='全部'; ui.mixBase='全部'; ui.mixLineage='全部'; ui.mixTier='all'; ui.mixLimit=150; return render();
+    case 'mixmore': ui.mixLimit+=200; return render();
   }
 }
 
@@ -1232,7 +1345,7 @@ function fallbackCopy(text){
 function openModal(title, bodyHTML, onMount, opts){
   opts=opts||{};
   const host=document.getElementById('modalHost');
-  host.innerHTML=`<div class="mask" id="mask"><div class="modal">
+  host.innerHTML=`<div class="mask" id="mask"><div class="modal${opts.wide?' wide':''}">
     <header><h3>${title}</h3><button class="iconbtn" id="mClose">✕</button></header>
     <div class="body">${bodyHTML}</div>
     <footer>${opts.extraFooter||''}<button class="btn" id="mCancel">取消</button>${opts.hideSave?'':'<button class="btn gold" id="mSave">保存</button>'}</footer>
@@ -1262,38 +1375,96 @@ function openSettings(){
   const s=db.settings;
   const rc = s.receipt || {};
   const PAPERS=[['classic','经典米黄'],['white','纯白'],['kraft','牛皮纸'],['dark','深色']];
-  openModal('设置',
-    '<div class="fld"><label class="lb">吧台名称</label><input class="inp" id="sName" value="'+esc(s.barName)+'"></div>'+
-    '<div class="fld"><label class="lb">副标题（小票上显示）</label><input class="inp" id="sSub" value="'+esc(s.barSub)+'"></div>'+
-    '<div class="row" style="gap:10px"><div class="fld sp"><label class="lb">调酒师署名</label><input class="inp" id="sOwner" value="'+esc(s.owner)+'"></div>'+
-    '<div class="fld sp"><label class="lb">货币符号</label><input class="inp" id="sCur" value="'+esc(s.currency)+'"></div></div>'+
-    '<hr style="border-top:1px solid var(--line);margin:16px 0">'+
-    '<div class="fld"><label class="lb">小票纸张</label><div class="row wrap" id="sPapers" style="gap:6px">'+
-      PAPERS.map(([k,n])=>'<button class="sfcat'+(rc.paper===k?' on':'')+'" data-p="'+k+'">'+n+'</button>').join('')+
-    '</div></div>'+
-    '<div class="fld"><label class="lb">小票背景图（可选，自动压缩后存在本地）</label>'+
-      '<input class="inp" type="file" id="sBg" accept="image/*">'+
-      '<div class="hint" id="sBgHint">'+(rc.bgImage?'已设置背景图':'不上传则使用纯色纸面')+'</div></div>'+
-    (rc.bgImage? '<div class="fld"><button class="btn sm" id="sBgClear">清除背景图</button></div>':'')+
-    '<div class="fld"><label class="lb">背景不透明度 <span class="tiny dim" id="sOpVal">'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'%</span></label>'+
-      '<input type="range" id="sOpacity" min="0" max="100" value="'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'" style="width:100%"></div>'+
-    '<div class="fld"><label class="lb">页面背景纹理（EROS 浮雕满印）</label>'+
-      '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'+
-      '<input type="checkbox" id="sBgTex" '+(s.bgTex===false?'':'checked')+' style="accent-color:var(--gold)"> 显示</label></div>'+
-    '<div class="fld"><label class="lb">小票显示「原料消耗」明细</label>'+
-      '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'+
-      '<input type="checkbox" id="sShowIng" '+(rc.showIngredients?'checked':'')+' style="accent-color:var(--gold)"> 显示</label></div>'+
-    '<div class="fld"><label class="lb">小票自定义文案（出现在条形码上方，可留空）</label>'+
-      '<textarea class="inp" id="sNote" rows="3" placeholder="本月战绩：12 杯&#10;下个月目标：少买一瓶">'+esc(rc.note||'')+'</textarea></div>'+
-    '<div class="hint" style="color:var(--mu2);font-size:11.5px">配方数据来自 bar-assistant/data (MIT) · '+RECIPES.length+' 款</div>',
-  (body,close)=>{
+
+  const bodyHTML =
+    '<div class="settabs" id="setTabs">'
+    + '<button class="settab on" data-t="page">页面设计</button>'
+    + '<button class="settab" data-t="receipt">小票设置</button>'
+    + '<button class="settab" data-t="about">关于</button>'
+    + '</div>'
+    + '<div class="setpanel" data-p="page">'
+    +   '<div class="fld"><label class="lb">吧台名称</label><input class="inp" id="sName" value="'+esc(s.barName)+'"></div>'
+    +   '<div class="fld"><label class="lb">副标题（小票上显示）</label><input class="inp" id="sSub" value="'+esc(s.barSub)+'"></div>'
+    +   '<div class="row" style="gap:10px">'
+    +     '<div class="fld sp"><label class="lb">调酒师署名</label><input class="inp" id="sOwner" value="'+esc(s.owner)+'"></div>'
+    +     '<div class="fld sp"><label class="lb">货币符号</label><input class="inp" id="sCur" value="'+esc(s.currency)+'"></div>'
+    +   '</div>'
+    +   '<div class="fld"><label class="lb">页面背景纹理（EROS 浮雕满印）</label>'
+    +     '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'
+    +     '<input type="checkbox" id="sBgTex" '+(s.bgTex===false?'':'checked')+' style="accent-color:var(--gold)"> 显示</label>'
+    +     '<div class="hint">图案参数可在 <code>build/make_bg.py</code> 调整</div></div>'
+    +   '<div class="fld"><label class="lb">背景纹理不透明度 <span class="tiny dim" id="sBgOpVal">'+Math.round((s.bgTexOpacity!=null?s.bgTexOpacity:.5)*100)+'%</span></label>'
+    +     '<input type="range" id="sBgOpacity" min="0" max="100" value="'+Math.round((s.bgTexOpacity!=null?s.bgTexOpacity:.5)*100)+'" style="width:100%"></div>'
+    + '</div>'
+    + '<div class="setpanel" data-p="receipt" hidden>'
+    +   '<div class="setgrid"><div>'
+    +     '<div class="fld"><label class="lb">小票纸张</label>'
+    +       '<div class="papers" id="sPapers">'
+    +       PAPERS.map(([k,n])=>'<button class="pchoice paper-'+k+(rc.paper===k?' on':'')+'" data-p="'+k+'" title="'+n+'">'+n.slice(0,2)+'</button>').join('')
+    +       '</div><div class="hint">点一下即时预览</div></div>'
+    +     '<div class="fld"><label class="lb">小票背景图（可选，自动压缩后存在本地）</label>'
+    +       '<input class="inp" type="file" id="sBg" accept="image/*">'
+    +       '<div class="hint" id="sBgHint">'+(rc.bgImage?'已设置背景图':'不上传则使用纯色纸面')+'</div></div>'
+    +     (rc.bgImage? '<div class="fld"><button class="btn sm" id="sBgClear">清除背景图</button></div>':'')
+    +     '<div class="fld"><label class="lb">背景图不透明度 <span class="tiny dim" id="sOpVal">'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'%</span></label>'
+    +       '<input type="range" id="sOpacity" min="0" max="100" value="'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'" style="width:100%"></div>'
+    +     '<div class="fld"><label class="lb">小票显示「原料消耗」明细</label>'
+    +       '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'
+    +       '<input type="checkbox" id="sShowIng" '+(rc.showIngredients?'checked':'')+' style="accent-color:var(--gold)"> 显示</label></div>'
+    +     '<div class="fld"><label class="lb">自定义文案（条形码上方）</label>'
+    +       '<textarea class="inp" id="sNote" rows="3" placeholder="留空则不显示">'+esc(rc.note||'')+'</textarea></div>'
+    +     '<div class="fld"><label class="lb">落款第一行</label>'
+    +       '<input class="inp" id="sFoot" value="'+esc(rc.foot||'谢谢惠顾 · THANK YOU')+'"></div>'
+    +     '<div class="fld"><label class="lb">落款第二行</label>'
+    +       '<input class="inp" id="sFoot2" value="'+esc(rc.foot2||'调得开心，别喝太多')+'"></div>'
+    +   '</div><div class="setaside">'
+    +     '<div class="cap">实时预览</div>'
+    +     '<div class="previewwrap" id="setPreview"></div>'
+    +   '</div></div>'
+    + '</div>'
+    + '<div class="setpanel" data-p="about" hidden>'
+    +   '<div class="hint" style="line-height:1.9;font-size:12px">'
+    +     '<b>家庭调酒台账 · Home Bar Ledger</b><br>'
+    +     '单文件 · 纯前端 · 离线可用的家庭酒吧消耗账本<br><br>'
+    +     '配方数据来自 <a href="https://github.com/bar-assistant/data" target="_blank">bar-assistant/data</a>（MIT），'
+    +     '共 '+RECIPES.length+' 款 · '+Object.keys(ING_META).length+' 种原料<br>'
+    +     '配方与原料的中文翻译由本项目完成<br><br>'
+    +     '你的数据全部存在浏览器本地（localStorage），不会上传到任何服务器。<br>'
+    +     '仓库：<a href="https://github.com/Erostanni/home-bar-ledger" target="_blank">Erostanni/home-bar-ledger</a>'
+    +   '</div>'
+    + '</div>';
+
+  openModal('设置', bodyHTML, (body,close)=>{
     const st=db.settings;
-    st.receipt = st.receipt || {paper:'classic',showIngredients:false,note:'',bgImage:null,bgOpacity:.25};
-    body.querySelectorAll('#sPapers .sfcat').forEach(b=>{
-      b.onclick=()=>{ st.receipt.paper=b.dataset.p; body.querySelectorAll('#sPapers .sfcat').forEach(x=>x.classList.toggle('on',x===b)); };
+    st.receipt = st.receipt || {paper:'classic',showIngredients:false,note:'',foot:'',foot2:'',bgImage:null,bgOpacity:.25};
+    st.bgTexOpacity = st.bgTexOpacity!=null?st.bgTexOpacity:.5;
+
+    // ---- 分区切换 ----
+    body.querySelectorAll('#setTabs .settab').forEach(t=>{
+      t.onclick=()=>{
+        body.querySelectorAll('#setTabs .settab').forEach(x=>x.classList.toggle('on',x===t));
+        body.querySelectorAll('.setpanel').forEach(p=>p.hidden = p.dataset.p!==t.dataset.t);
+      };
     });
-    const op=body.querySelector('#sOpacity');
-    op.oninput=()=>{ body.querySelector('#sOpVal').textContent=op.value+'%'; st.receipt.bgOpacity=op.value/100; };
+
+    // ---- 实时预览 ----
+    const preview=body.querySelector('#setPreview');
+    function refreshPreview(){
+      const sd=statementData(ui.stmtMonth);
+      preview.innerHTML=receiptHTML(sd);
+    }
+    refreshPreview();
+
+    // ---- 纸张选择 ----
+    body.querySelectorAll('#sPapers .pchoice').forEach(b=>{
+      b.onclick=()=>{
+        st.receipt.paper=b.dataset.p;
+        body.querySelectorAll('#sPapers .pchoice').forEach(x=>x.classList.toggle('on',x===b));
+        refreshPreview();
+      };
+    });
+
+    // ---- 背景图 ----
     const bg=body.querySelector('#sBg');
     bg.onchange=(e)=>{
       const f=e.target.files[0]; if(!f) return;
@@ -1301,14 +1472,14 @@ function openSettings(){
       fr.onload=()=>{
         const img=new Image();
         img.onload=()=>{
-          const max=420;
-          const sc=Math.min(1, max/Math.max(img.width,img.height));
+          const max=420, sc=Math.min(1, max/Math.max(img.width,img.height));
           const cv=document.createElement('canvas');
           cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
           cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
           st.receipt.bgImage=cv.toDataURL('image/jpeg',.7);
           save();
           body.querySelector('#sBgHint').textContent='已设置背景图（'+cv.width+'×'+cv.height+'）';
+          refreshPreview();
           toast('背景图已保存','ok');
         };
         img.src=fr.result;
@@ -1317,19 +1488,42 @@ function openSettings(){
     };
     const bc=body.querySelector('#sBgClear');
     if(bc) bc.onclick=()=>{ st.receipt.bgImage=null; save(); close(); render(); toast('已清除背景图'); };
+
+    // ---- 滑块 ----
+    const op=body.querySelector('#sOpacity');
+    op.oninput=()=>{ body.querySelector('#sOpVal').textContent=op.value+'%'; st.receipt.bgOpacity=op.value/100; refreshPreview(); };
+    const bop=body.querySelector('#sBgOpacity');
+    bop.oninput=()=>{ body.querySelector('#sBgOpVal').textContent=bop.value+'%'; st.bgTexOpacity=bop.value/100; document.body.style.setProperty('--bgtex', bop.value/100); };
+
+    // ---- 文本即时预览 ----
+    ['sNote','sFoot','sFoot2'].forEach(id=>{
+      const el=body.querySelector('#'+id);
+      el.addEventListener('input',()=>{
+        if(id==='sNote') st.receipt.note=el.value;
+        if(id==='sFoot') st.receipt.foot=el.value;
+        if(id==='sFoot2') st.receipt.foot2=el.value;
+        refreshPreview();
+      });
+    });
+    body.querySelector('#sShowIng').addEventListener('change',e=>{ st.receipt.showIngredients=e.target.checked; refreshPreview(); });
+
+    // ---- 保存 ----
     body.querySelector('#mSave').onclick=()=>{
       st.barName=body.querySelector('#sName').value.trim()||'我的家庭吧';
       st.barSub=body.querySelector('#sSub').value.trim();
       st.owner=body.querySelector('#sOwner').value.trim();
       st.currency=body.querySelector('#sCur').value.trim()||'¥';
       st.receipt.paper=st.receipt.paper||'classic';
-      st.receipt.showIngredients=body.querySelector('#sShowIng').checked;
       st.receipt.note=body.querySelector('#sNote').value;
+      st.receipt.foot=body.querySelector('#sFoot').value;
+      st.receipt.foot2=body.querySelector('#sFoot2').value;
+      st.receipt.showIngredients=body.querySelector('#sShowIng').checked;
       st.receipt.bgOpacity=op.value/100;
-      st.bgTex = body.querySelector('#sBgTex').checked;
+      st.bgTex=body.querySelector('#sBgTex').checked;
+      st.bgTexOpacity=bop.value/100;
       save(); close(); render(); toast('设置已保存','ok');
     };
-  });
+  }, {wide:true});
 }
 document.getElementById('btnSettings').onclick=openSettings;
 

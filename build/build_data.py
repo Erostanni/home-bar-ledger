@@ -58,7 +58,7 @@ def load_ingredients():
     return out
 
 
-def shorten(desc, limit=110):
+def shorten(desc, limit=240):
     """描述只保留首句，用于小票展示。"""
     if not desc:
         return ''
@@ -112,6 +112,11 @@ def convert_recipe(d):
         'steps': (tr.get('s') if tr else '') or [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6],
         'ings': ings,
     }
+    styles, mstyle, base, lineage = classify(d.get('tags'), ings, ING_META)
+    out['styles'] = styles
+    out['style'] = mstyle
+    out['base'] = base
+    out['lineage'] = lineage
     out['stepsEn'] = [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6] if (tr and tr.get('s')) else []
     out['descEn'] = shorten(d.get('description')) if (tr and tr.get('d')) else ''
     out['garnishEn'] = d.get('garnish') if (tr and tr.get('g')) else ''
@@ -241,6 +246,129 @@ CAT_ZH = {
 }
 
 
+# ---- 风格标签中文映射（多选） ----
+STYLE_ZH = {
+    'Citrusy': '柑橘', 'Bitter': '苦味', 'Sweet': '甜', 'Fruity': '果味', 'Sour': '酸',
+    'Tiki': '提基', 'Smokey': '烟熏', 'Herbacious': '草本', 'Herbal': '草本',
+    'Coffee': '咖啡', 'Summer': '夏饮', 'Negroni': '尼格罗尼系', 'Tropical': '热带',
+    'Savory': '咸鲜', 'Refreshing': '清爽', 'Spritz': '气泡', 'Brandy': '白兰地',
+    'Wine': '葡萄酒', 'Spicy': '辛香', 'Floral': '花香', 'Dry': '干爽',
+    'Dessert': '餐后甜', 'Virgin': '无酒精', 'Classic': '经典', 'Light': '轻盈',
+    'Complex': '复杂层次', 'The Unforgettables': '不可忘 classics', 'Contemporary Classics': '当代经典',
+    'New Era Drinks': '新时代', 'IBA Cocktail': 'IBA 官方', 'Classics': '经典',
+    'Sour': '酸', 'Tiki': '提基',
+    'Mule': '骡子', 'Old Fashioned': '古典', 'Margarita': '玛格丽特', 'Punch': '餐酒',
+    'Fizz': '气泡', 'Flip': '飘香', 'Winter': '冬饮', 'Clarified': '澄清',
+    'Batch': '批量', 'Minty': '薄荷', 'Hot': '热饮', 'Autumn': '秋饮',
+    'Mojito': '莫吉托', 'Swizzle': '搅打', 'Julep': '朱莉普', 'Manhattan': '曼哈顿',
+}
+# ---- 主风格判定优先级（互斥，命中即止） ----
+STYLE_PRIORITY = [
+    ('无酒精', ['无酒精']),
+    ('提基', ['提基']),
+    ('咖啡', ['咖啡']),
+    ('烟熏', ['烟熏']),
+    ('尼格罗尼系', ['尼格罗尼系']),
+    ('苦味', ['苦味']),
+    ('辛香', ['辛香']),
+    ('餐后甜', ['餐后甜']),
+    ('咸鲜', ['咸鲜']),
+    ('酸', ['酸']),
+    ('花香', ['花香']),
+    ('草本', ['草本']),
+    ('果味', ['果味']),
+    ('甜', ['甜']),
+    ('气泡', ['气泡']),
+    ('清爽', ['清爽', '柑橘']),
+    ('热带', ['热带']),
+    ('夏饮', ['夏饮']),
+    ('轻盈', ['轻盈']),
+    ('复杂层次', ['复杂层次']),
+]
+# ---- 基酒推断关键词 ----
+BASE_RULES = [
+    ('金酒',   ['gin']),
+    ('伏特加', ['vodka']),
+    ('朗姆',   ['rum']),
+    ('威士忌', ['whiskey', 'bourbon', 'scotch', 'rye', 'irish whiskey']),
+    ('龙舌兰', ['tequila', 'mezcal']),
+    ('白兰地', ['cognac', 'brandy', 'apple brandy', 'calvados', 'pisco', 'grappa', 'cherry brandy']),
+    ('葡萄酒', ['vermouth', 'wine', 'sherry', 'port', 'champagne', 'prosecco', 'marsala']),
+    ('其他',   []),
+]
+
+
+ING_META = {}   # 原料元信息缓存，main() 填充
+
+
+def classify(recipe_tags, ings, ing_meta):
+    """返回 (风格列表, 主风格, 基酒, 谱系)。
+
+    风格：多选（来自标签），主风格互斥（标签优先，无标签时按用料推断）
+    基酒：从原料推断
+    谱系：经典 / 当代 / 提基
+    """
+    tags = recipe_tags or []
+    styles = []
+    for t in tags:
+        zh = STYLE_ZH.get(t)
+        if zh and zh not in styles:
+            styles.append(zh)
+
+    names = [i.get('n') or '' for i in ings]
+    low = ' '.join(names).lower()
+    cats = ' '.join((ing_meta.get(n) or {}).get('catTop', '') for n in names)
+
+    # ---------- 基酒 ----------
+    base = '其他'
+    for name, keys in BASE_RULES:
+        if any(k in low for k in keys):
+            base = name
+            break
+
+    # ---------- 谱系 ----------
+    lineage = '现代'
+    if 'The Unforgettables' in tags or 'Contemporary Classics' in tags \
+       or 'New Era Drinks' in tags or 'Classics' in tags or 'Classic' in tags \
+       or 'Old Fashioned' in tags or 'IBA Cocktail' in tags:
+        lineage = '经典'
+    if 'Tiki' in tags:
+        lineage = '提基'
+
+    # ---------- 主风格 ----------
+    main_style = ''
+    for name, keys in STYLE_PRIORITY:
+        if any(k in styles for k in keys):
+            main_style = name
+            break
+    if not main_style:
+        # 无标签 → 按用料推断
+        has_spirit = any(c in cats for c in ('Spirits', 'Liqueurs', 'Brandy', 'Wine', 'Fortified wine'))
+        has_citrus = ('lemon juice' in low) or ('lime juice' in low)
+        has_juice = 'Juices' in cats
+        has_syrup = 'Sweeteners' in cats
+        has_soda = any(k in low for k in ('soda water', 'tonic water', 'ginger beer', 'champagne', 'prosecco', 'sparkling'))
+        has_coffee = 'coffee' in low or 'espresso' in low
+        bitter_n = sum(1 for k in ('bitter', 'amaro', 'campari', 'vermouth') if k in low)
+        if not has_spirit:
+            main_style = '无酒精'
+        elif has_coffee:
+            main_style = '咖啡'
+        elif bitter_n >= 2:
+            main_style = '苦味'
+        elif has_citrus and not has_soda:
+            main_style = '酸'
+        elif has_juice:
+            main_style = '果味'
+        elif has_soda:
+            main_style = '清爽'
+        elif has_syrup:
+            main_style = '甜'
+        else:
+            main_style = '经典'
+    return styles, main_style, base, lineage
+
+
 def main():
     recs_raw = load_recipes()
     ings_raw = load_ingredients()
@@ -258,6 +386,16 @@ def main():
         tags = set(d.get('tags') or [])
         d['_tier'] = 1 if (tags & KEEP_TAGS or rid in WISHLIST) else 0
         selected[rid] = d
+
+    # 先建原料元信息表（分类要用）
+    global ING_META
+    ING_META = {}
+    for _n, _v in ings_raw.items():
+        ING_META[_n] = {
+            'cat': _v.get('category') or 'Other',
+            'catTop': (_v.get('category') or 'Other').split('>')[0].strip(),
+            'zh': _v.get('zh') or ZH.get(_n, ''),
+        }
 
     recipes, used_ings = [], collections.OrderedDict()
     for rid, d in sorted(selected.items(), key=lambda kv: kv[1]['name'].lower()):
@@ -298,6 +436,18 @@ def main():
                 i['refSize'] = size
                 i['refPrice'] = price
             i['zh'] = zh_by_norm.get(key, '')
+
+    # 挂上已生成的图片（assets/cocktails/manifest.json）
+    man_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'cocktails', 'manifest.json')
+    manifest = {}
+    if os.path.exists(man_path):
+        try:
+            manifest = json.load(open(man_path, encoding='utf-8'))
+        except Exception:
+            manifest = {}
+    for r in recipes:
+        if r['id'] in manifest:
+            r['img'] = manifest[r['id']]
 
     data = {
         'recipes': recipes,

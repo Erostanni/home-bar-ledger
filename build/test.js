@@ -12,6 +12,15 @@ const ok = (c, m) => { if (c) { pass++; console.log('  ✓ ' + m); } else { fail
 const near = (a, b, eps = 0.01) => Math.abs(a - b) < eps;
 
 /** 启动一个带种子数据的应用实例 */
+/* 按名字精确挑一款配方（先搜索，避免列表截断导致找不到） */
+function pickRecipe(t, name){
+  const q = t.$('#mixQ');
+  if(q) t.setVal(q, name);
+  const it = t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim() === name);
+  if(it) t.click(it);
+  return it;
+}
+
 function boot(seed) {
   const errors = [];
   const dom = new JSDOM(HTML, {
@@ -56,8 +65,12 @@ console.log('\n【2】配方库完整性');
   ok(R.flatMap(r => r.ings).every(i => i.n && typeof i.ml === 'number' && i.ml >= 0), '材料字段合法');
   ok(R.some(r => r.name === 'Negroni') && R.some(r => r.name === 'Margarita'), '含经典款');
   ok(R.filter(r=>r.tier===1).length === 129, `tier1 经典 ${R.filter(r=>r.tier===1).length} 款`);
-  ok(R.filter(r=>r.zh).length >= 129, `已中文化 ${R.filter(r=>r.zh).length} 款`);
-  ok(R.some(r=>!r.zh), '未中文化的配方被标记');
+  ok(R.filter(r=>r.zh).length === 663, `已中文化 ${R.filter(r=>r.zh).length} / ${R.length} 款（全覆盖）`);
+  ok(R.every(r=>r.style && r.style!=='其他'), '每款都有主风格，无「其他」');
+  ok(R.every(r=>r.base), '每款都有基酒');
+  ok(new Set(R.map(r=>r.style)).size >= 15, `风格分 ${new Set(R.map(r=>r.style)).size} 类`);
+  ok(new Set(R.map(r=>r.base)).size >= 7, `基酒分 ${new Set(R.map(r=>r.base)).size} 类`);
+  ok(new Set(R.map(r=>r.lineage)).size === 3, '谱系分 3 类（经典/现代/提基）');
   ok(new Set(R.map(r=>r.id)).size === R.length, '配方 id 无重复');
   const metered = R.flatMap(r => r.ings).filter(i => !i.nonmetered);
   ok(metered.length > 400, `可计量材料条目 ${metered.length} 条`);
@@ -87,9 +100,9 @@ console.log('\n【4】缺料拦截');
 {
   const t = boot(null);
   t.tab('mix');
-  const item = t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim() === 'Negroni');
+  const item = pickRecipe(t,'Negroni');
   ok(!!item, '列表有 Negroni');
-  t.click(item);
+  // 已由 pickRecipe 点击
   ok(t.$('#recipeDetail').textContent.includes('Negroni'), '详情切到 Negroni');
   ok(t.$('[data-act="record"]').disabled, '缺料时记录按钮禁用');
   ok(t.$('#recipeDetail').textContent.includes('缺'), '显示缺料提示');
@@ -103,7 +116,7 @@ const NEGRONI_INGS = ['Gin', 'Sweet Vermouth', 'Campari'];
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
+  pickRecipe(t,'Negroni');
   const btn = t.$('[data-act="record"]');
   ok(!btn.disabled, '材料齐备时可记录');
   t.click(btn);
@@ -128,7 +141,7 @@ console.log('\n【6】连喝两杯（跨瓶扣减）');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
+  pickRecipe(t,'Negroni');
   t.click(t.$('[data-act="record"]'));   // 第一杯
   t.click(t.$('[data-act="record"]'));   // 第二杯
   const d = t.db();
@@ -145,7 +158,7 @@ console.log('\n【7】撤销并退回库存');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
+  pickRecipe(t,'Negroni');
   t.click(t.$('[data-act="record"]'));
   let d = t.db();
   ok(d.stock.Gin.openedMl === 720, '扣减后 720ml');
@@ -209,7 +222,7 @@ console.log('\n【9】份数联动');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 2, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
+  pickRecipe(t,'Negroni');
   const html1 = t.$('#recipeDetail').textContent;
   ok(html1.includes('90 ml'), '1 份 → 90ml');
   t.click(t.$('[data-act="serv"][data-n="3"]'));
@@ -287,7 +300,7 @@ console.log('\n【13】一键常备酒柜');
   ok(t.$('.stockcard'), '酒柜渲染出卡片');
   // 载入后应该有能做的酒
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Gin and Tonic')) || t.$$('.recitem')[0]);
+  pickRecipe(t,'Gin and Tonic');
   ok(true, '载入后可进入调制');
 }
 
@@ -319,7 +332,7 @@ console.log('\n【15】中文入库的原料能正常扣减');
   seed.stock['Campari'] = { name: 'Campari', sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' };
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
+  pickRecipe(t,'Negroni');
   ok(!t.$('[data-act="record"]').disabled, '三样齐了可记录');
   t.click(t.$('[data-act="record"]'));
   const d = t.db();
@@ -404,6 +417,37 @@ console.log('\n【17】分类 + 网格选择器');
   ok(t.$('#fGridHead').textContent.includes('搜索'), '搜索时标题切换');
   ok(t.$$('.fcell').length === 1, '搜「伏特加」只剩 1 格');
   ok(t.$('.fprev').textContent.includes('Vodka'), '输入时预览实时更新');
+}
+
+/* ============ 场景 18：配方分类筛选 ============ */
+console.log('\n【18】配方分类筛选');
+{
+  const t = boot(null);
+  t.tab('mix');
+  const rows = t.$$('.mixfrow');
+  ok(rows.length === 3, `三行筛选（风格/基酒/谱系），实得 ${rows.length}`);
+  const styleBtns = rows[0].querySelectorAll('.sfcat');
+  ok(styleBtns.length >= 15, `风格选项 ${styleBtns.length} 个`);
+  // 点「金酒」基酒
+  const baseRow = rows[1];
+  const gin = [...baseRow.querySelectorAll('.sfcat')].find(b => b.textContent.includes('金酒'));
+  ok(!!gin, '基酒行有「金酒」');
+  t.click(gin);
+  const names = t.$$('.recitem .rn').map(e => e.textContent.trim());
+  ok(names.length > 0, `筛后有 ${names.length} 款`);
+  const allGin = t.w.eval('JSON.stringify(RECIPES.filter(r=>r.base==="金酒").map(r=>r.name))');
+  const ginNames = JSON.parse(allGin);
+  ok(ginNames.length > 100, `金酒基酒共 ${ginNames.length} 款`);
+  // 清除筛选
+  const clear = t.$('[data-act="mixclear"]');
+  ok(!!clear, '有清除筛选按钮');
+  t.click(clear);
+  ok(t.$('[data-act="mixclear"]') === null, '清除后按钮消失');
+  // 谱系筛选
+  const lin = [...rows[2].querySelectorAll('.sfcat')].find(b => b.textContent.includes('提基'));
+  t.click(lin);
+  const tiki = t.w.eval('JSON.stringify(RECIPES.filter(r=>r.lineage==="提基").length)');
+  ok(parseInt(tiki) > 20, `提基谱系 ${tiki} 款`);
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);

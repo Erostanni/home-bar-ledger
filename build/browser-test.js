@@ -28,6 +28,8 @@ const OUT = path.join(ROOT, 'preview');
   await page.waitForTimeout(300);
   await page.click('#tabs button[data-v="mix"]');
   await page.waitForTimeout(300);
+  await page.fill('#mixQ', 'Negroni');
+  await page.waitForTimeout(400);
   const n = page.locator('.recitem').filter({ has: page.locator('.rn', { hasText: /^Negroni$/ }) }).first();
   await n.click();
   await page.waitForTimeout(200);

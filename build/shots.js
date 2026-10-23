@@ -62,6 +62,8 @@ LEDGER.forEach((r, i) => {
   await shot('02-mix');
 
   // 选 Negroni
+  await page.fill('#mixQ', 'Negroni');
+  await page.waitForTimeout(400);
   const n = await page.locator('.recitem').filter({ has: page.locator('.rn', { hasText: /^Negroni$/ }) }).first();
   if (await n.count()) { await n.click(); await page.waitForTimeout(300); }
   await shot('03-recipe');
