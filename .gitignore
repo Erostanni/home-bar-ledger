@@ -39,3 +39,6 @@ data/data/cocktails/
 data/data/ingredients/
 data/cocktails/
 data/ingredients/
+
+# 可读版数据（开发者用，不入库）
+bar-data.pretty.json
