@@ -274,7 +274,12 @@ console.log('\n【12】设置');
 {
   const t = boot(null);
   t.click(t.$('#btnSettings'));
-  ok(t.$('#sName'), '设置弹窗打开');
+  ok(!!t.$('.settabs'), '设置弹窗打开');
+  const tabs = t.$$('.settab').map(e=>e.textContent.trim());
+  ok(tabs.length === 4, `四个分区：${tabs.join(' / ')}`);
+  // 切到「小票」分区
+  t.click(t.$$('.settab').find(e=>e.textContent.trim()==='小票'));
+  ok(t.$('#sName'), '小票分区有吧台名称');
   t.setVal(t.$('#sName'), '巷口小吧');
   t.setVal(t.$('#sOwner'), '小李');
   t.click(t.$('#mSave'));
@@ -439,6 +444,44 @@ console.log('\n【18】缺料时材料行仍显示');
   ['Gin','Sweet Vermouth','Campari'].forEach(n => d.stock[n] = {name:n,sizeMl:750,price:150,unopened:1,openedMl:0,note:''});
   t.w.localStorage.setItem('hbl.v1', JSON.stringify(d));
   t.w.eval("location.reload()");
+}
+
+/* ============ 场景 20：外观主题系统 ============ */
+console.log('\n【20】外观主题系统');
+{
+  const t = boot(null);
+  t.click(t.$('#btnSettings'));
+  ok(t.$$('[data-theme-pick]').length === 3, '三种主题：跟随系统 / 深色 / 浅色');
+  ok(t.$$('[data-accent]').length === 6, '6 种强调色');
+  ok(t.$$('[data-sw]').length === 3, '3 个开关（背景纹理 / 界面动效 / 显示原料消耗）');
+  ok(t.$$('input[type=range]').length === 3, '3 个滑块');
+
+  // 切浅色
+  t.click(t.$$('[data-theme-pick]').find(b=>b.dataset.themePick==='light'));
+  ok(t.w.eval("document.documentElement.getAttribute('data-theme')")==='light', '切到浅色主题');
+  // jsdom 不解析 CSS 变量，直接查样式表里浅色主题的定义
+  const css = t.w.eval("document.querySelector('style').textContent");
+  ok(/html\[data-theme="light"\]\s*\{[^}]*--bg:#ece6db/.test(css), '浅色主题定义了浅底色');
+  ok(/html\[data-theme="light"\][\s\S]{0,900}body::after\{[\s\S]{0,300}eros|light/.test(css) || /data-theme="light"[\s\S]{0,1200}background-image:url\("data:image\/svg\+xml/.test(css), '浅色主题使用独立的 EROS 图案（反色）');
+  ok(t.db().settings.theme==='light', '主题已持久化');
+
+  // 强调色
+  t.click(t.$$('[data-accent]').find(b=>b.dataset.accent==='indigo'));
+  ok(t.w.eval("getComputedStyle(document.documentElement).getPropertyValue('--gold').trim()")==='#6b86c4', '强调色生效');
+
+  // 背景纹理开关
+  t.click(t.$$('[data-sw]').find(b=>b.dataset.sw==='bgTex'));
+  ok(t.w.eval("document.body.classList.contains('no-bgtex')"), '纹理可关闭');
+  t.click(t.$$('[data-sw]').find(b=>b.dataset.sw==='bgTex'));
+  ok(!t.w.eval("document.body.classList.contains('no-bgtex')"), '纹理可重新打开');
+
+  // 字号
+  t.click(t.$$('[data-seg="fontSize"]').find(b=>b.dataset.v==='大'));
+  ok(t.w.eval("document.documentElement.style.fontSize")==='16.5px', '字号可调');
+
+  // 动效开关
+  t.click(t.$$('[data-sw]').find(b=>b.dataset.sw==='motion'));
+  ok(t.w.eval("document.documentElement.classList.contains('no-motion')"), '动效可关闭');
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
