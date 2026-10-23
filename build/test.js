@@ -359,7 +359,7 @@ console.log('\n【16】原料选择器');
   const cells = t.$$('.fcell');
   ok(cells.length >= 2, `中文搜索「金」出 ${cells.length} 个格子`);
   ok(cells[0].textContent.includes('金酒'), '首个是「金酒」');
-  ok(cells[0].textContent.includes('Gin'), '同时显示英文原名');
+  ok(cells[0].getAttribute('title')==='Gin', '英文原名在 title 里（格子单行显示中文）');
 
   t.click(cells[0]);
   ok(t.$('#fName').value === 'Gin', '选中后输入框填入规范名 Gin');
