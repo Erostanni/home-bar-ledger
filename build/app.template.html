@@ -377,6 +377,7 @@ let ui = {
   showEn: false,
   stockCat: '全部',
   stockSort: 'name',
+  mixTier: 'all',
 };
 
 function defaults(){
@@ -637,7 +638,9 @@ function renderCanMake(){
 /* ============================ 视图：调制 ============================ */
 function viewMix(){
   const q=ui.mixQ.trim().toLowerCase();
+  const tierOk = r => ui.mixTier==='all' || r.tier===1;
   const list=RECIPES.filter(r=>{
+    if(!tierOk(r)) return false;
     if(!q) return true;
     if(r.name.toLowerCase().includes(q)) return true;
     if(r.glass&&r.glass.toLowerCase().includes(q)) return true;
@@ -646,14 +649,19 @@ function viewMix(){
     return r.ings.some(i=>zhOf(i.n).includes(q));
   });
   const sel=BY_ID[ui.mixSel];
+  const untranslatedCount=(ui.mixTier==='all')?RECIPES.filter(r=>!r.zh).length:0;
   return `
   <div class="mixwrap">
     <div class="card" style="position:sticky;top:74px">
       <div class="searchbar"><input class="inp" id="mixQ" placeholder="搜酒名 / 原料 / 杯型…" value="${esc(ui.mixQ)}"></div>
-      <div class="sub" style="margin-bottom:9px">${list.length} / ${RECIPES.length} 款</div>
+      <div class="row wrap" style="gap:5px;margin-bottom:8px">
+        <button class="sfcat ${ui.mixTier==='all'?'on':''}" data-act="mixtier" data-t="all">全部 ${RECIPES.length}</button>
+        <button class="sfcat ${ui.mixTier==='classic'?'on':''}" data-act="mixtier" data-t="classic">经典 ${RECIPES.filter(r=>r.tier===1).length}</button>
+      </div>
+      <div class="sub" style="margin-bottom:9px">${list.length} 款${untranslatedCount?` · ${untranslatedCount} 款待中文化`:''}</div>
       <div class="reclist" id="reclist">
         ${list.map(r=>`<div class="recitem ${r.id===ui.mixSel?'on':''}" data-act="selrecipe" data-id="${r.id}">
-          <div class="rn">${esc(r.name)}</div>
+          <div class="rn">${esc(r.name)}${r.zh?'':' <span class="pill" title="中文翻译待补">EN</span>'}</div>
           <div class="rg">${esc(r.glassZh||r.glass||'')} · ${esc(r.methodZh||r.method||'')}${r.abv?' · '+r.abv+'%':''}</div>
         </div>`).join('') || '<div class="empty">没有匹配的配方</div>'}
       </div>
@@ -703,6 +711,7 @@ function recipeDetail(r){
         </div>
       </div>
     </div>
+    ${!r.zh?'<div class="pill warn" style="margin:10px 0 0">此文暂未中文化 · 显示英文原文</div>':''}
     ${r.desc?`<p class="tiny dim" style="margin:10px 0 0;line-height:1.75">${esc(r.desc)}</p>`:''}
     ${showEn&&r.descEn?`<p class="tiny" style="margin:6px 0 0;line-height:1.7;color:var(--mu2);font-style:italic">${esc(r.descEn)}</p>`:''}
     ${r.tags&&r.tags.length?`<div class="row wrap" style="gap:5px;margin-top:9px">${r.tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}</div>`:''}
@@ -938,6 +947,7 @@ function handle(act,d){
     case 'export': return exportData();
     case 'seedbar': return seedBar();
     case 'stockcat': ui.stockCat = d.c; return render();
+    case 'mixtier': ui.mixTier = d.t; return render();
   }
 }
 

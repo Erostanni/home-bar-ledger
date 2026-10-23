@@ -51,10 +51,14 @@ console.log('\n【2】配方库完整性');
 {
   const t = boot(null);
   const R = t.w.eval('DATA').recipes;
-  ok(R.length === 129, `配方 ${R.length} 条`);
+  ok(R.length === 663, `配方 ${R.length} 条`);
   ok(R.every(r => r.name && Array.isArray(r.ings) && r.ings.length), '每条配方都有名称+材料');
   ok(R.flatMap(r => r.ings).every(i => i.n && typeof i.ml === 'number' && i.ml >= 0), '材料字段合法');
   ok(R.some(r => r.name === 'Negroni') && R.some(r => r.name === 'Margarita'), '含经典款');
+  ok(R.filter(r=>r.tier===1).length === 129, `tier1 经典 ${R.filter(r=>r.tier===1).length} 款`);
+  ok(R.filter(r=>r.zh).length >= 129, `已中文化 ${R.filter(r=>r.zh).length} 款`);
+  ok(R.some(r=>!r.zh), '未中文化的配方被标记');
+  ok(new Set(R.map(r=>r.id)).size === R.length, '配方 id 无重复');
   const metered = R.flatMap(r => r.ings).filter(i => !i.nonmetered);
   ok(metered.length > 400, `可计量材料条目 ${metered.length} 条`);
 }
@@ -83,7 +87,7 @@ console.log('\n【4】缺料拦截');
 {
   const t = boot(null);
   t.tab('mix');
-  const item = t.$$('.recitem').find(el => el.textContent.includes('Negroni'));
+  const item = t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim() === 'Negroni');
   ok(!!item, '列表有 Negroni');
   t.click(item);
   ok(t.$('#recipeDetail').textContent.includes('Negroni'), '详情切到 Negroni');
@@ -99,7 +103,7 @@ const NEGRONI_INGS = ['Gin', 'Sweet Vermouth', 'Campari'];
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Negroni')));
+  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
   const btn = t.$('[data-act="record"]');
   ok(!btn.disabled, '材料齐备时可记录');
   t.click(btn);
@@ -124,7 +128,7 @@ console.log('\n【6】连喝两杯（跨瓶扣减）');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Negroni')));
+  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
   t.click(t.$('[data-act="record"]'));   // 第一杯
   t.click(t.$('[data-act="record"]'));   // 第二杯
   const d = t.db();
@@ -141,7 +145,7 @@ console.log('\n【7】撤销并退回库存');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Negroni')));
+  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
   t.click(t.$('[data-act="record"]'));
   let d = t.db();
   ok(d.stock.Gin.openedMl === 720, '扣减后 720ml');
@@ -205,7 +209,7 @@ console.log('\n【9】份数联动');
   NEGRONI_INGS.forEach(n => seed.stock[n] = { name: n, sizeMl: 750, price: 150, unopened: 2, openedMl: 0, note: '' });
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Negroni')));
+  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
   const html1 = t.$('#recipeDetail').textContent;
   ok(html1.includes('90 ml'), '1 份 → 90ml');
   t.click(t.$('[data-act="serv"][data-n="3"]'));
@@ -315,7 +319,7 @@ console.log('\n【15】中文入库的原料能正常扣减');
   seed.stock['Campari'] = { name: 'Campari', sizeMl: 750, price: 150, unopened: 1, openedMl: 0, note: '' };
   const t = boot(seed);
   t.tab('mix');
-  t.click(t.$$('.recitem').find(el => el.textContent.includes('Negroni')));
+  t.click(t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim()==='Negroni'));
   ok(!t.$('[data-act="record"]').disabled, '三样齐了可记录');
   t.click(t.$('[data-act="record"]'));
   const d = t.db();
@@ -375,13 +379,13 @@ console.log('\n【17】分类 + 网格选择器');
   ok(!cats.some(c => c.includes('›')), '没有多层路径分类');
   ok(t.$$('.fcat i').length === cats.length - 1, '各分类带数量角标');
 
-  ok(t.$$('.fcell').length === 122, `默认网格 122 格（实得 ${t.$$('.fcell').length}）`);
+  ok(t.$$('.fcell').length === 262, `默认网格 262 格（实得 ${t.$$('.fcell').length}）`);
   ok(t.$('#fGridHead').textContent.includes('全部'), '网格标题说明当前范围');
 
   // 切分类
   t.click(t.$$('.fcat').find(c => c.textContent.includes('烈酒')));
   const n = t.$$('.fcell').length;
-  ok(n > 0 && n < 122, `切「烈酒」后网格 ${n} 格`);
+  ok(n > 0 && n < 262, `切「烈酒」后网格 ${n} 格`);
   ok(t.$('#fGridHead').textContent.includes('烈酒'), '标题跟着切换');
   ok(t.$('#fName').value === '', '切分类时清空搜索词');
 

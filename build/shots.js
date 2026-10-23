@@ -62,7 +62,7 @@ LEDGER.forEach((r, i) => {
   await shot('02-mix');
 
   // 选 Negroni
-  const n = await page.locator('.recitem', { hasText: 'Negroni' }).first();
+  const n = await page.locator('.recitem').filter({ has: page.locator('.rn', { hasText: /^Negroni$/ }) }).first();
   if (await n.count()) { await n.click(); await page.waitForTimeout(300); }
   await shot('03-recipe');
 

@@ -93,26 +93,28 @@ def convert_recipe(d):
         return None  # 全是装饰料的配方，剔除
 
     # ---- 中文翻译 ----
-    tr = TR.get(d['_id'], {})
     glass = d.get('glass')
     method = d.get('method')
+    tr = TR.get(d['_id'])
     out = {
         'id': d['_id'],
         'name': d['name'],
-        'desc': tr.get('d') or shorten(d.get('description')),
-        'garnish': tr.get('g', d.get('garnish')) if 'g' in tr else d.get('garnish'),
+        'tier': d.get('_tier', 0),
+        'zh': bool(tr),
+        'desc': (tr.get('d') if tr else '') or shorten(d.get('description')),
+        'garnish': (tr.get('g') if tr and 'g' in tr else '') or d.get('garnish'),
         'abv': d.get('abv'),
         'glass': glass,
         'glassZh': GLASS_ZH.get(glass, glass),
         'method': method,
         'methodZh': METHOD_ZH.get(method, method),
         'tags': [t for t in (d.get('tags') or []) if t not in ('IBA Cocktail',)][:4],
-        'steps': tr.get('s') or [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6],
+        'steps': (tr.get('s') if tr else '') or [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6],
         'ings': ings,
     }
-    out['stepsEn'] = [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6] if tr.get('s') else []
-    out['descEn'] = shorten(d.get('description')) if tr.get('d') else ''
-    out['garnishEn'] = d.get('garnish') if tr.get('g') else ''
+    out['stepsEn'] = [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6] if (tr and tr.get('s')) else []
+    out['descEn'] = shorten(d.get('description')) if (tr and tr.get('d')) else ''
+    out['garnishEn'] = d.get('garnish') if (tr and tr.get('g')) else ''
     return out
 
 
@@ -249,11 +251,13 @@ def main():
         print('   请先按 data/README.md 的说明拉取 bar-assistant/data 仓库', file=sys.stderr)
         sys.exit(1)
 
+    # 全量收录所有「可计量」的配方（不再只取经典 129 款）
+    # tier=1 表示 IBA 经典 / 不可忘 classics，UI 里可按此筛选
     selected = {}
     for rid, d in recs_raw.items():
         tags = set(d.get('tags') or [])
-        if tags & KEEP_TAGS or rid in WISHLIST:
-            selected[rid] = d
+        d['_tier'] = 1 if (tags & KEEP_TAGS or rid in WISHLIST) else 0
+        selected[rid] = d
 
     recipes, used_ings = [], collections.OrderedDict()
     for rid, d in sorted(selected.items(), key=lambda kv: kv[1]['name'].lower()):
