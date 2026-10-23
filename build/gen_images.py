@@ -88,6 +88,10 @@ def call_batch(items):
         d = json.loads(r.stdout)
     except Exception:
         print('    调用失败:', (r.stdout or r.stderr)[:200]); return {}
+    if d.get('code') != 0:
+        print('    接口返回错误:', (r.stdout or '')[:200]); return {}
+    if d.get('code') != 0:
+        print('    接口返回错误:', (r.stdout or '')[:200]); return {}
     out = {}
     for it in d.get('success_items') or []:
         out[it['file_name'].rsplit('.', 1)[0]] = it['node_id']
@@ -114,7 +118,7 @@ def main():
     recipes = data['recipes']
     start = int(sys.argv[1]) if len(sys.argv) > 1 else 0
     end = int(sys.argv[2]) if len(sys.argv) > 2 else len(recipes)
-    size = int(sys.argv[3]) if len(sys.argv) > 3 else 10
+    size = min(int(sys.argv[3]) if len(sys.argv) > 3 else 10, 10)   # API 单批上限 10
 
     todo = []
     for r in recipes[start:end]:
