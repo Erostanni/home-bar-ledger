@@ -171,10 +171,13 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 /* ---------- 统计条 ---------- */
 .stockfilter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;
   padding-top:12px;border-top:1px solid var(--line)}
-.stockfilter .sfcat{padding:3px 10px;border-radius:20px;border:1px solid var(--line);background:var(--panel3);
-  color:var(--mu);font-size:11.5px;cursor:pointer;transition:.12s;user-select:none}
-.stockfilter .sfcat:hover{border-color:var(--gold-d);color:var(--tx)}
-.stockfilter .sfcat.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600}
+.sfcat{padding:3px 10px;border-radius:20px;border:1px solid var(--line);background:var(--panel3);
+  color:var(--mu);font-size:11.5px;cursor:pointer;transition:.14s var(--ease);user-select:none;line-height:1.5}
+.sfcat:hover{border-color:var(--gold-d);color:var(--tx)}
+.sfcat.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600;
+  box-shadow:0 0 0 2px rgba(217,164,65,.20)}
+.sfcat i{font-style:normal;opacity:.6;margin-left:3px;font-size:10.5px}
+.sfcat.on i{opacity:.8}
 .stockfilter select{padding:5px 9px;background:var(--panel3);border:1px solid var(--line);border-radius:7px;font-size:12px}
 .stockfilter .sfcount{font-size:11.5px;color:var(--mu2);margin-left:auto}
 /* 指标条：一条连贯的横条，比五张独立卡片更紧凑、更有节奏 */
@@ -228,9 +231,7 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .mixwrap{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
 .mixfrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px}
 .mixflabel{flex:0 0 28px;font-size:10.5px;color:var(--mu2);letter-spacing:.5px;padding-top:4px}
-.mixfrow .sfcat{font-size:11px;padding:2px 8px}
-.mixfrow .sfcat i{font-style:normal;opacity:.6;margin-left:3px;font-size:9.5px}
-.mixfrow .sfcat.on i{opacity:.75}
+.mixfrow .sfcat{font-size:11px;padding:2px 9px}
 .searchbar{position:relative;margin-bottom:11px}
 .searchbar .inp{padding-left:32px}
 .searchbar::before{content:"⌕";position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--mu2);font-size:15px}

@@ -420,7 +420,9 @@ console.log('\n【17】分类 + 网格选择器');
   // 搜索
   t.setVal(t.$('#fName'), '伏特加');
   ok(t.$('#fGridHead').textContent.includes('搜索'), '搜索时标题切换');
-  ok(t.$$('.fcell').length === 1, '搜「伏特加」只剩 1 格');
+  const fCells = t.$$('.fcell').length;
+  const expectCells = t.w.eval("ING_LIST.filter(x=>x.n.toLowerCase().includes('伏特加') || (x.z||'').toLowerCase().includes('伏特加')).length");
+  ok(fCells === expectCells, `搜「伏特加」在原料网格命中 ${expectCells} 种（含「香草伏特加」，实得 ${fCells}）`);
   ok(t.$('.fprev').textContent.includes('Vodka'), '输入时预览实时更新');
 }
 
@@ -484,7 +486,7 @@ console.log('\n【20】外观主题系统');
   ok(t.w.eval("document.documentElement.classList.contains('no-motion')"), '动效可关闭');
 }
 
-console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
+
 console.log('\n【19】配方分类筛选');
 {
   const t = boot(null);
@@ -513,6 +515,11 @@ console.log('\n【19】配方分类筛选');
   t.click(lin);
   const tiki = t.w.eval('JSON.stringify(RECIPES.filter(r=>r.lineage==="提基").length)');
   ok(parseInt(tiki) > 20, `提基谱系 ${tiki} 款`);
+  // 原料中文名也能搜到配方
+  t.click(t.$('[data-act="mixclear"]') || t.$$('.settab')[0]);
+  t.setVal(t.$('#mixQ'), '伏特加');
+  const vCount = t.w.eval("RECIPES.filter(r=>r.ings.some(i=>(i.n||'').toLowerCase().includes('伏特加')||(i.zh||'').includes('伏特加'))).length");
+  ok(t.$$('.recitem').length === vCount, `搜「伏特加」按中文名命中 ${vCount} 款`);
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
