@@ -1,8 +1,0 @@
-{
-  "version": "1.0.0",
-  "dataVersion": "1.0.0",
-  "releasedAt": "2026-10-22T00:00:00Z",
-  "notes": "首个版本：129 款经典配方，库存自动扣减，复古酒吧收据月度结算单",
-  "minCompat": 1,
-  "repo": "Erostanni/home-bar-ledger"
-}

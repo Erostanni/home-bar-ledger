@@ -437,18 +437,6 @@ def main():
                 i['refPrice'] = price
             i['zh'] = zh_by_norm.get(key, '')
 
-    # 挂上已生成的图片（assets/cocktails/manifest.json）
-    man_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'cocktails', 'manifest.json')
-    manifest = {}
-    if os.path.exists(man_path):
-        try:
-            manifest = json.load(open(man_path, encoding='utf-8'))
-        except Exception:
-            manifest = {}
-    for r in recipes:
-        if r['id'] in manifest:
-            r['img'] = manifest[r['id']]
-
     data = {
         'recipes': recipes,
         'ingredients': ingredients,

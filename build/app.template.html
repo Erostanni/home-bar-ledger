@@ -194,7 +194,7 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .reclist{max-height:calc(100vh - 230px);overflow-y:auto;padding-right:4px}
 .reclist::-webkit-scrollbar{width:6px}
 .reclist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
-.recitem{position:relative;padding:9px 12px 9px 48px;border-radius:8px;cursor:pointer;
+.recitem{position:relative;padding:9px 12px;border-radius:8px;cursor:pointer;
   transition:.13s;border:1px solid transparent}
 .recitem:hover{background:var(--panel)}
 .recitem.on{background:var(--panel2);border-color:var(--gold-d)}
@@ -202,8 +202,6 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .recitem .rg{font-size:11px;color:var(--mu2);margin-top:1px}
 .recitem .rt{font-size:10.5px;color:var(--mu2);margin-top:4px;display:flex;gap:4px;flex-wrap:wrap}
 .recitem .rt .pill{font-size:9.5px;padding:1px 6px}
-.recitem .recthumb{position:absolute;left:9px;top:10px;width:30px;height:30px;border-radius:6px;
-  image-rendering:pixelated;background:#0f0c0a;border:1px solid var(--line);object-fit:cover}
 .rd{display:grid;grid-template-columns:1fr auto;gap:8px 14px;padding:9px 0;border-bottom:1px dashed var(--line)}
 .rd:last-child{border-bottom:none}
 .rd .l1{font-size:13.5px}
@@ -212,9 +210,6 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stockbar{height:3px;background:#2a211a;border-radius:2px;margin-top:5px;overflow:hidden}
 .stockbar i{display:block;height:100%;background:var(--ok);border-radius:2px}
 .stockbar i.low{background:var(--bad)}
-.rcup{width:100%;max-width:260px;aspect-ratio:1;object-fit:cover;border-radius:12px;
-  border:1px solid var(--line);margin:12px 0 4px;display:block;image-rendering:pixelated;
-  background:#0f0c0a;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 .steps{counter-reset:s;padding:0;margin:0;list-style:none}
 .steps li{counter-increment:s;position:relative;padding:7px 0 7px 30px;font-size:13.5px;color:#ddd3c4;border-bottom:1px dashed var(--line)}
 .steps li:last-child{border-bottom:none}
@@ -763,7 +758,6 @@ function viewMix(){
       </div>
       <div class="reclist" id="reclist">
         ${list.slice(0,ui.mixLimit).map(r=>`<div class="recitem ${r.id===ui.mixSel?'on':''}" data-act="selrecipe" data-id="${r.id}">
-          ${r.img?`<img class="recthumb" src="assets/cocktails/${esc(r.img)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`:''}
           <div class="rn">${esc(r.name)}${r.zh?'':' <span class="pill" title="中文翻译待补">EN</span>'}</div>
           <div class="rg">${esc(r.glassZh||r.glass||'')} · ${esc(r.methodZh||r.method||'')}${r.abv?' · '+r.abv+'%':''}</div>
           <div class="rt"><span class="pill">${esc(r.style)}</span><span class="pill">${esc(r.base)}</span>${r.lineage==='经典'?'<span class="pill gold">经典</span>':''}</div>
@@ -817,7 +811,6 @@ function recipeDetail(r){
       </div>
     </div>
     ${!r.zh?'<div class="pill warn" style="margin:10px 0 0">此文暂未中文化 · 显示英文原文</div>':''}
-    ${r.img?`<img class="rcup" src="assets/cocktails/${esc(r.img)}" alt="${esc(r.name)}" loading="lazy" decoding="async" onerror="this.style.display='none'">`:''}
     ${r.desc?`<p class="tiny dim" style="margin:10px 0 0;line-height:1.75">${esc(r.desc)}</p>`:''}
     ${showEn&&r.descEn?`<p class="tiny" style="margin:6px 0 0;line-height:1.7;color:var(--mu2);font-style:italic">${esc(r.descEn)}</p>`:''}
     ${r.tags&&r.tags.length?`<div class="row wrap" style="gap:5px;margin-top:9px">${r.tags.map(t=>`<span class="pill">${esc(t)}</span>`).join('')}</div>`:''}
