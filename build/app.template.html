@@ -24,6 +24,15 @@ body::before{
   background:radial-gradient(900px 500px at 15% -5%, rgba(217,164,65,.09), transparent 60%),
              radial-gradient(700px 500px at 95% 105%, rgba(127,163,92,.07), transparent 60%);
 }
+/* EROS 浮雕满印背景：45° 倾斜的几何 monogram，亮部上左 + 暗部下右 = 浮雕感 */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27260%27%20height%3D%27260%27%20viewBox%3D%270%200%20260%20260%27%3E%3Cg%20transform%3D%27rotate%2845%20130.0%20130.0%29%27%3E%3Cg%20transform%3D%27translate%282.0%2C2.0%29%27%20fill%3D%27%23000%27%20stroke%3D%27%23000%27%20opacity%3D%270.3%27%3E%3Ctext%20x%3D%27130.0%27%20y%3D%27145.8%27%20font-family%3D%27Helvetica%20Neue%2CHelvetica%2CArial%2Csans-serif%27%20font-size%3D%2744%27%20font-weight%3D%27700%27%20letter-spacing%3D%277.0%27%20text-anchor%3D%27middle%27%20fill%3D%27%23000%27%20opacity%3D%270.3%27%3EEROS%3C%2Ftext%3E%3Cpath%20d%3D%27M130.0%2085.1%20l13.2%2013.2%20l-13.2%2013.2%20l-13.2%20-13.2%20z%27%20fill%3D%27none%27%20stroke%3D%27%23000%27%20stroke-width%3D%272%27%20opacity%3D%270.3%27%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%27translate%28-1.4%2C-1.4%29%27%20fill%3D%27%23ffffff%27%20stroke%3D%27%23ffffff%27%20opacity%3D%270.1%27%3E%3Ctext%20x%3D%27130.0%27%20y%3D%27145.8%27%20font-family%3D%27Helvetica%20Neue%2CHelvetica%2CArial%2Csans-serif%27%20font-size%3D%2744%27%20font-weight%3D%27700%27%20letter-spacing%3D%277.0%27%20text-anchor%3D%27middle%27%20fill%3D%27%23ffffff%27%20opacity%3D%270.1%27%3EEROS%3C%2Ftext%3E%3Cpath%20d%3D%27M130.0%2085.1%20l13.2%2013.2%20l-13.2%2013.2%20l-13.2%20-13.2%20z%27%20fill%3D%27none%27%20stroke%3D%27%23ffffff%27%20stroke-width%3D%272%27%20opacity%3D%270.1%27%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%27translate%280%2C0%29%27%20fill%3D%27%23e6cf96%27%20stroke%3D%27%23e6cf96%27%20opacity%3D%270.17%27%3E%3Ctext%20x%3D%27130.0%27%20y%3D%27145.8%27%20font-family%3D%27Helvetica%20Neue%2CHelvetica%2CArial%2Csans-serif%27%20font-size%3D%2744%27%20font-weight%3D%27700%27%20letter-spacing%3D%277.0%27%20text-anchor%3D%27middle%27%20fill%3D%27%23e6cf96%27%20opacity%3D%270.17%27%3EEROS%3C%2Ftext%3E%3Cpath%20d%3D%27M130.0%2085.1%20l13.2%2013.2%20l-13.2%2013.2%20l-13.2%20-13.2%20z%27%20fill%3D%27none%27%20stroke%3D%27%23e6cf96%27%20stroke-width%3D%272%27%20opacity%3D%270.17%27%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-size:260px 260px;
+  background-repeat:repeat;
+  opacity:var(--bgtex,.5);
+}
+body.no-bgtex::after{display:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:none}
 a{color:var(--gold)}
@@ -31,7 +40,7 @@ a{color:var(--gold)}
 /* ---------- 顶栏 ---------- */
 .topbar{
   position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:18px;
-  padding:12px 20px; background:rgba(20,16,13,.88); backdrop-filter:blur(12px);
+  padding:12px 20px; background:rgba(20,16,13,.94); backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line); flex-wrap:wrap;
 }
 .brand{display:flex;align-items:center;gap:11px}
@@ -100,6 +109,14 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .tiny{font-size:11.5px}
 
 /* ---------- 统计条 ---------- */
+.stockfilter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;
+  padding-top:12px;border-top:1px solid var(--line)}
+.stockfilter .sfcat{padding:3px 10px;border-radius:20px;border:1px solid #3a2f24;background:#1a1410;
+  color:var(--mu);font-size:11.5px;cursor:pointer;transition:.12s;user-select:none}
+.stockfilter .sfcat:hover{border-color:var(--gold-d);color:var(--tx)}
+.stockfilter .sfcat.on{background:var(--gold);color:#1a1409;border-color:var(--gold);font-weight:600}
+.stockfilter select{padding:5px 9px;background:#16110d;border:1px solid var(--line);border-radius:7px;font-size:12px}
+.stockfilter .sfcount{font-size:11.5px;color:var(--mu2);margin-left:auto}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px}
 .stat .k{font-size:10.5px;color:var(--mu2);letter-spacing:1.3px;text-transform:uppercase}
@@ -107,11 +124,20 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stat .v small{font-size:12px;color:var(--mu);font-weight:400}
 
 /* ---------- 酒柜 ---------- */
-.stocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:11px}
-.stockcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px;position:relative;transition:.15s}
+.stocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:9px;
+  max-height:calc(100vh - 330px);min-height:180px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start}
+.stocklist::-webkit-scrollbar{width:7px}
+.stocklist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
+.stocklist::-webkit-scrollbar-track{background:transparent}
+.stockcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;
+  position:relative;transition:.15s;display:flex;flex-direction:column;min-height:118px}
 .stockcard:hover{border-color:var(--line2)}
-.stockcard .nm{font-weight:600;font-size:13.5px;margin-bottom:2px;padding-right:52px}
-.stockcard .cat{font-size:10.5px;color:var(--mu2);letter-spacing:.6px;text-transform:uppercase}
+.stockcard .nm{font-weight:600;font-size:13px;margin-bottom:2px;padding-right:50px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
+.stockcard .cat{font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
+.stockcard .bar{margin:8px 0 5px;flex:0 0 auto}
+.stockcard .amt{margin-top:auto;padding-top:2px}
 .bar{height:4px;border-radius:3px;background:#2a211a;margin:9px 0 6px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:3px}
 .bar i.low{background:linear-gradient(90deg,#7a3a2c,var(--bad))}
@@ -169,6 +195,17 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 小票 ---------- */
 .receiptwrap{display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start}
+.receipt.paper-classic{background:#f6f1e4;color:#2b2620}
+.receipt.paper-white{background:#ffffff;color:#1a1a1a}
+.receipt.paper-kraft{background:#dccaa6;color:#3a2f20}
+.receipt.paper-dark{background:#16120e;color:#e8dfd0}
+.receipt.paper-dark .rrule2{border-top-color:#6b5d48}
+.receipt.paper-dark .rrule{border-top-color:#4a3f33}
+.receipt.paper-dark .rrow .k,.receipt.paper-dark .rsec,.receipt.paper-dark .rfoot,
+.receipt.paper-dark .rstoresub{color:#9c8d78}
+.receipt.paper-dark .rbarcode{background:repeating-linear-gradient(90deg,#e8dfd0 0 1px,transparent 1px 3px,#e8dfd0 3px 5px,transparent 5px 7px,#e8dfd0 7px 8px,transparent 8px 11px)}
+.receipt .rbg{position:absolute;inset:0;pointer-events:none;z-index:0;background-size:cover;background-position:center;opacity:var(--rbgop,.25)}
+.receipt > *:not(.rbg){position:relative;z-index:1}
 .receipt{
   width:320px;max-width:100%;margin:0 auto;background:var(--paper);color:var(--ink);
   padding:24px 20px 22px;font:12px/1.6 var(--mono);position:relative;
@@ -338,13 +375,18 @@ let ui = {
   stmtMonth: curMonth(),
   printMode: '80',
   showEn: false,
+  stockCat: '全部',
+  stockSort: 'name',
 };
 
 function defaults(){
   return {
     stock: {},   // name -> {name,sizeMl,price,unopened,openedMl,note}
     ledger: [],  // {id,ts,recipeId,name,servings,lines:[{n,ml,before:{unopened,openedMl}}],totalMl,cost,note}
-    settings: { barName:'我的家庭吧', barSub:'HOME BAR', owner:'', currency:'¥' }
+    settings: {
+      barName:'我的家庭吧', barSub:'HOME BAR', owner:'', currency:'¥',
+      receipt: { paper:'classic', showIngredients:false, note:'', bgImage:null, bgOpacity:.25 }
+    }
   };
 }
 function load(){
@@ -494,14 +536,28 @@ function render(){
   app.innerHTML=html;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.v===view));
   document.getElementById('barNameTitle').textContent=db.settings.barName||'家庭调酒台账';
+  document.body.classList.toggle('no-bgtex', db.settings.bgTex===false);
   bind();
 }
 
 /* ============================ 视图：酒柜 ============================ */
 function viewCabinet(){
-  const names=Object.keys(db.stock).sort((a,b)=>a.localeCompare(b,'en'));
-  const totalBottles=names.reduce((s,n)=>s+(db.stock[n].unopened||0),0);
-  const opened=names.filter(n=>(db.stock[n].openedMl||0)>0).length;
+  const allNames=Object.keys(db.stock);
+  // 分类筛选
+  const catOf=n=>(ING_META[n]&&ING_META[n].catTopZh)||'其他';
+  const cats=[...new Set(allNames.map(catOf))].sort((a,b)=>{
+    if(a===ui.stockCat) return -1; if(b===ui.stockCat) return 1;
+    return a.localeCompare(b,'zh');
+  });
+  let names=allNames.filter(n=> ui.stockCat==='全部' || catOf(n)===ui.stockCat);
+  // 排序
+  const sort=ui.stockSort;
+  if(sort==='name') names.sort((a,b)=>a.localeCompare(b,'zh'));
+  else if(sort==='avail') names.sort((a,b)=>availMl(b)-availMl(a));
+  else if(sort==='abv') names.sort((a,b)=>((ING_META[b]||{}).abv||0)-((ING_META[a]||{}).abv||0));
+  else names.sort((a,b)=>a.localeCompare(b,'zh'));
+  const totalBottles=allNames.reduce((s,n)=>s+(db.stock[n].unopened||0),0);
+  const opened=allNames.filter(n=>(db.stock[n].openedMl||0)>0).length;
   const sv=stockValue();
   const recipes=RECIPES.length;
 
@@ -526,7 +582,7 @@ function viewCabinet(){
 
   return `
   <div class="stats">
-    <div class="stat"><div class="k">在册原料</div><div class="v">${names.length}<small> 种</small></div></div>
+    <div class="stat"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
     <div class="stat"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
     <div class="stat"><div class="k">已开封</div><div class="v">${opened}<small> 种</small></div></div>
     <div class="stat"><div class="k">库存估值</div><div class="v">${sv.known?money0(sv.value):'部分未标价'}</div></div>
@@ -542,6 +598,16 @@ function viewCabinet(){
         <button class="btn gold" data-act="addstock">+ 添加原料</button>
       </div>
     </div>
+    ${allNames.length? `<div class="stockfilter">
+      <button class="sfcat ${ui.stockCat==='全部'?'on':''}" data-act="stockcat" data-c="全部">全部</button>
+      ${cats.filter(c=>c!=='全部').map(c=>`<button class="sfcat ${ui.stockCat===c?'on':''}" data-act="stockcat" data-c="${esc(c)}">${esc(c)}</button>`).join('')}
+      <select data-act="stocksort" id="stockSort">
+        <option value="name" ${ui.stockSort==='name'?'selected':''}>按名称</option>
+        <option value="avail" ${ui.stockSort==='avail'?'selected':''}>按余量</option>
+        <option value="abv" ${ui.stockSort==='abv'?'selected':''}>按酒精度</option>
+      </select>
+      <span class="sfcount">显示 ${names.length} / ${allNames.length} 种</span>
+    </div>`:''}
   </div>
 
   ${names.length? `<div class="stocklist">${cards}</div>`
@@ -767,6 +833,7 @@ function viewStatement(){
 
 function receiptHTML(d){
   const s=db.settings;
+  const rc = s.receipt || {paper:'classic', showIngredients:false, note:'', bgImage:null, bgOpacity:.25};
   const rows=d.ingRows.map(([n,v])=>{
     const u=unitCost(n);
     return `<div class="rrow g3">
@@ -782,7 +849,8 @@ function receiptHTML(d){
     </div>`).join('');
   const dstr=new Date().toLocaleDateString('zh-CN');
 
-  return `<div class="receipt">
+  return `<div class="receipt paper-${esc(rc.paper||'classic')}" style="--rbgop:${rc.bgOpacity!=null?rc.bgOpacity:.25}">
+    ${rc.bgImage? `<div class="rbg" style="background-image:url('${rc.bgImage}')"></div>`:''}
     <div class="rcenter">
       <div class="rlogo">◑</div>
       <div class="rstore">${esc(s.barName||'我的家庭吧')}</div>
@@ -798,12 +866,12 @@ function receiptHTML(d){
     <div class="rsec">出品清单 / SALES</div>
     ${recs || '<div class="rrow"><span class="k">当月无出品</span><span class="v">—</span></div>'}
 
-    <div class="rsec">原料消耗 / CONSUMPTION</div>
+    ${(rc.showIngredients!==false)? `<div class="rsec">原料消耗 / CONSUMPTION</div>
     ${rows || '<div class="rrow"><span class="k">无消耗记录</span><span class="v">—</span></div>'}
     <div class="rrow g3" style="opacity:.6;margin-top:3px">
       <span class="k" style="font-size:10px">合计</span><span></span>
       <span class="v amt" style="font-size:10.5px">${money(d.ingCost||0)}</span>
-    </div>
+    </div>`:''}
 
     <hr class="rrule">
     <div class="rtot"><span>总杯数 TOTAL</span><span>${d.cups}</span></div>
@@ -813,6 +881,8 @@ function receiptHTML(d){
     <div class="rrow" style="opacity:.8"><span class="k">库存剩余估值</span><span class="v">${d.sv.known?money(d.sv.value):'部分未标价'}</span></div>
     <div class="rrow" style="opacity:.8"><span class="k">上月出品</span><span class="v">${d.prevCups} 杯</span></div>
 
+    ${rc.note? `<div class="rnote" style="margin-top:14px;padding:9px 0;border-top:1px dashed currentColor;opacity:.82;
+      font-size:11px;line-height:1.75;white-space:pre-wrap">${esc(rc.note)}</div>`:''}
     <div class="rbarcode"></div>
     <div class="rfoot">谢谢惠顾 · THANK YOU<br>调得开心，别喝太多</div>
   </div>`;
@@ -836,6 +906,8 @@ function bind(){
   }
   const en=document.getElementById('showEn');
   if(en) en.onchange=()=>{ ui.showEn=en.checked; render(); };
+  const ss=document.getElementById('stockSort');
+  if(ss) ss.onchange=(e)=>{ ui.stockSort=e.target.value; render(); };
   const lm=document.getElementById('ledgerMonth');
   if(lm) lm.onchange=()=>{ ui.ledgerMonth=lm.value; render(); };
   const sm=document.getElementById('stmtMonth');
@@ -865,6 +937,7 @@ function handle(act,d){
     case 'import': return importData();
     case 'export': return exportData();
     case 'seedbar': return seedBar();
+    case 'stockcat': ui.stockCat = d.c; return render();
   }
 }
 
@@ -962,7 +1035,7 @@ function stockForm(name){
       gridBox.innerHTML = list.map(x =>
         '<button class="fcell" data-n="'+esc(x.n)+'" title="'+esc(x.n)+'">'
         + '<div class="n">'+esc(x.z||x.n)+'</div>'
-        + '<div class="e">'+esc(x.n)+'</div>'
+        + (x.z ? '<div class="e">'+esc(x.n)+'</div>' : '')
         + '</button>').join('');
       gridBox.querySelectorAll('.fcell').forEach(el=>{
         el.onclick=()=>{ pick(el.dataset.n); };
@@ -1177,17 +1250,73 @@ function confirmModal(title,msg,onYes){
 /* ============================ 设置 ============================ */
 function openSettings(){
   const s=db.settings;
-  openModal('设置','<div class="fld"><label class="lb">吧台名称</label><input class="inp" id="sName" value="'+esc(s.barName)+'"></div>'+
+  const rc = s.receipt || {};
+  const PAPERS=[['classic','经典米黄'],['white','纯白'],['kraft','牛皮纸'],['dark','深色']];
+  openModal('设置',
+    '<div class="fld"><label class="lb">吧台名称</label><input class="inp" id="sName" value="'+esc(s.barName)+'"></div>'+
     '<div class="fld"><label class="lb">副标题（小票上显示）</label><input class="inp" id="sSub" value="'+esc(s.barSub)+'"></div>'+
     '<div class="row" style="gap:10px"><div class="fld sp"><label class="lb">调酒师署名</label><input class="inp" id="sOwner" value="'+esc(s.owner)+'"></div>'+
     '<div class="fld sp"><label class="lb">货币符号</label><input class="inp" id="sCur" value="'+esc(s.currency)+'"></div></div>'+
-    '<div class="hint" style="color:var(--mu2);font-size:11.5px">配方数据来自 bar-assistant/data (MIT) · 663 款开源配方中的 '+RECIPES.length+' 款经典</div>',
+    '<hr style="border-top:1px solid var(--line);margin:16px 0">'+
+    '<div class="fld"><label class="lb">小票纸张</label><div class="row wrap" id="sPapers" style="gap:6px">'+
+      PAPERS.map(([k,n])=>'<button class="sfcat'+(rc.paper===k?' on':'')+'" data-p="'+k+'">'+n+'</button>').join('')+
+    '</div></div>'+
+    '<div class="fld"><label class="lb">小票背景图（可选，自动压缩后存在本地）</label>'+
+      '<input class="inp" type="file" id="sBg" accept="image/*">'+
+      '<div class="hint" id="sBgHint">'+(rc.bgImage?'已设置背景图':'不上传则使用纯色纸面')+'</div></div>'+
+    (rc.bgImage? '<div class="fld"><button class="btn sm" id="sBgClear">清除背景图</button></div>':'')+
+    '<div class="fld"><label class="lb">背景不透明度 <span class="tiny dim" id="sOpVal">'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'%</span></label>'+
+      '<input type="range" id="sOpacity" min="0" max="100" value="'+Math.round((rc.bgOpacity!=null?rc.bgOpacity:.25)*100)+'" style="width:100%"></div>'+
+    '<div class="fld"><label class="lb">页面背景纹理（EROS 浮雕满印）</label>'+
+      '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'+
+      '<input type="checkbox" id="sBgTex" '+(s.bgTex===false?'':'checked')+' style="accent-color:var(--gold)"> 显示</label></div>'+
+    '<div class="fld"><label class="lb">小票显示「原料消耗」明细</label>'+
+      '<label class="tiny dim" style="display:flex;align-items:center;gap:6px;cursor:pointer">'+
+      '<input type="checkbox" id="sShowIng" '+(rc.showIngredients?'checked':'')+' style="accent-color:var(--gold)"> 显示</label></div>'+
+    '<div class="fld"><label class="lb">小票自定义文案（出现在条形码上方，可留空）</label>'+
+      '<textarea class="inp" id="sNote" rows="3" placeholder="本月战绩：12 杯&#10;下个月目标：少买一瓶">'+esc(rc.note||'')+'</textarea></div>'+
+    '<div class="hint" style="color:var(--mu2);font-size:11.5px">配方数据来自 bar-assistant/data (MIT) · '+RECIPES.length+' 款</div>',
   (body,close)=>{
+    const st=db.settings;
+    st.receipt = st.receipt || {paper:'classic',showIngredients:false,note:'',bgImage:null,bgOpacity:.25};
+    body.querySelectorAll('#sPapers .sfcat').forEach(b=>{
+      b.onclick=()=>{ st.receipt.paper=b.dataset.p; body.querySelectorAll('#sPapers .sfcat').forEach(x=>x.classList.toggle('on',x===b)); };
+    });
+    const op=body.querySelector('#sOpacity');
+    op.oninput=()=>{ body.querySelector('#sOpVal').textContent=op.value+'%'; st.receipt.bgOpacity=op.value/100; };
+    const bg=body.querySelector('#sBg');
+    bg.onchange=(e)=>{
+      const f=e.target.files[0]; if(!f) return;
+      const fr=new FileReader();
+      fr.onload=()=>{
+        const img=new Image();
+        img.onload=()=>{
+          const max=420;
+          const sc=Math.min(1, max/Math.max(img.width,img.height));
+          const cv=document.createElement('canvas');
+          cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+          cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+          st.receipt.bgImage=cv.toDataURL('image/jpeg',.7);
+          save();
+          body.querySelector('#sBgHint').textContent='已设置背景图（'+cv.width+'×'+cv.height+'）';
+          toast('背景图已保存','ok');
+        };
+        img.src=fr.result;
+      };
+      fr.readAsDataURL(f);
+    };
+    const bc=body.querySelector('#sBgClear');
+    if(bc) bc.onclick=()=>{ st.receipt.bgImage=null; save(); close(); render(); toast('已清除背景图'); };
     body.querySelector('#mSave').onclick=()=>{
-      db.settings.barName=body.querySelector('#sName').value.trim()||'我的家庭吧';
-      db.settings.barSub=body.querySelector('#sSub').value.trim();
-      db.settings.owner=body.querySelector('#sOwner').value.trim();
-      db.settings.currency=body.querySelector('#sCur').value.trim()||'¥';
+      st.barName=body.querySelector('#sName').value.trim()||'我的家庭吧';
+      st.barSub=body.querySelector('#sSub').value.trim();
+      st.owner=body.querySelector('#sOwner').value.trim();
+      st.currency=body.querySelector('#sCur').value.trim()||'¥';
+      st.receipt.paper=st.receipt.paper||'classic';
+      st.receipt.showIngredients=body.querySelector('#sShowIng').checked;
+      st.receipt.note=body.querySelector('#sNote').value;
+      st.receipt.bgOpacity=op.value/100;
+      st.bgTex = body.querySelector('#sBgTex').checked;
       save(); close(); render(); toast('设置已保存','ok');
     };
   });

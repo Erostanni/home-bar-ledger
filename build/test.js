@@ -174,15 +174,25 @@ console.log('\n【8】月度账单');
   ok(txt.includes('TEST BAR'), '小票有副标题');
   ok(txt.includes('阿伦'), '小票有调酒师署名');
   ok(txt.includes('出品清单'), '有出品清单区');
-  ok(txt.includes('原料消耗'), '有原料消耗区');
+  ok(!txt.includes('原料消耗'), '默认不展示原料消耗区');
   ok(txt.includes('总杯数'), '有合计区');
   ok(txt.includes('谢谢惠顾'), '有落款');
   ok(txt.includes('Negroni'), '列出了酒名');
   ok(txt.includes('¥'), '有金额');
   ok(txt.includes('3'), '杯数合计 3');
   ok(t.$('.rbarcode'), '有条形码装饰');
-  ok(/90ml/.test(txt), 'Gin 累计 90ml');
-  ok(txt.includes('27'), 'Gin 成本 27.00 (90 × 0.2)');
+  // 打开「原料消耗」开关后应恢复显示（直接改应用内存态）
+  t.w.eval("db.settings.receipt = { paper:'classic', showIngredients:true, note:'', bgImage:null, bgOpacity:.25 }; render();");
+  t.tab('mix'); t.tab('statement');
+  const txt2 = t.$('.receipt').textContent;
+  ok(txt2.includes('原料消耗'), '开关打开后展示原料消耗区');
+  ok(/90ml/.test(txt2), 'Gin 累计 90ml');
+  ok(txt2.includes('27'), 'Gin 成本 27.00 (90 × 0.2)');
+  // 纸张与自定义文案
+  t.w.eval("db.settings.receipt = { paper:'dark', showIngredients:false, note:'本月战绩 12 杯', bgImage:null, bgOpacity:.25 }; render();");
+  t.tab('mix'); t.tab('statement');
+  ok(t.$('.receipt').classList.contains('paper-dark'), '可切换纸张样式');
+  ok(t.$('.receipt').textContent.includes('本月战绩 12 杯'), '自定义文案显示在小票上');
   // 打印按钮
   ok(t.$('[data-act="print"]'), '有打印按钮');
   ok(t.$('[data-act="copyreceipt"]'), '有复制文本按钮');

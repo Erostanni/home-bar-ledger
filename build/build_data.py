@@ -204,6 +204,13 @@ ZH = {
     'Orange Flower Water': '橙花水', 'Lemon soda': '柠檬汽水',
     'Crushed ice': '碎冰', 'Olive brine': '橄榄盐水', 'Onion brine': '洋葱盐水',
     'Soy sauce': '酱油', 'Ting': '汤力水',
+    'Egg': '全蛋', 'Cream of Coconut': '椰奶油', 'Ouzo': '茴香酒',
+    'Aquavit': 'Aquavit', 'Sake': '清酒', 'Soju': '烧酒',
+    'Pisco': '皮斯科', 'Schnapps': '果味烈酒', 'Sherry': '雪莉酒',
+    'Tawny Port': '波特酒', 'White Port': '白波特', 'Vermouth Bianco': '白味美思',
+    'Bitter Orange': '橙味苦精', 'Bitter Peach': '桃味苦精', 'Bitter Lemon': '柠檬苦精',
+    'Pepper': '胡椒', 'Salt': '盐', 'Ginger': '姜', 'Cucumber': '黄瓜',
+    'Strawberry': '草莓', 'Chilli Pepper': '辣椒', 'Malört': '玛乐',
 }
 
 
