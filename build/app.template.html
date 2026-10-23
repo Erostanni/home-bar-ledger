@@ -599,9 +599,11 @@ function planFor(recipe, servings){
     const have = availMl(i.n);
     const ok = have >= need;
     if(!ok && !i.opt) missing.push({n:i.n, need, have});
+    // 展示用 need（配方需求量），扣减用 eff（实际可扣量）
+    // 关键：库存不足时材料行也必须显示 —— 否则用户只看到「缺 60ml」，
+    // 根本不知道这杯酒需要什么材料。
     const eff = ok ? need : Math.min(need, have);
-    if(eff <= 0) continue;
-    lines.push({n:i.n, ml:eff, need, have, ok, opt:!!i.opt});
+    lines.push({n:i.n, ml:need, eff, need, have, ok, opt:!!i.opt});
   }
   return {lines, missing};
 }
@@ -609,7 +611,7 @@ function planFor(recipe, servings){
 function deduct(lines){
   const snap=[];
   for(const l of lines){
-    const name=canonicalName(l.n), need=l.ml;
+    const name=canonicalName(l.n), need=(l.eff!=null?l.eff:l.ml);
     if(need<=0) continue;
     if(!db.stock[name]) db.stock[name]={name,sizeMl:0,price:null,unopened:0,openedMl:0,note:''};
     const s=db.stock[name];
@@ -640,7 +642,7 @@ function costOf(lines){
   for(const l of lines){
     const u=unitCost(l.n);
     if(u==null){ all=false; continue; }
-    c += u*l.ml;
+    c += u*(l.eff!=null?l.eff:l.ml);
   }
   return {cost:c, complete:all};
 }
@@ -832,7 +834,7 @@ function recipeDetail(r){
     const u=unitCost(l.n);
     return `<div class="rd">
       <div class="l1">${label(l.n)}${meta.catZh?` <span class="pill">${esc(meta.catZh)}</span>`:''}</div>
-      <div class="l2">${l.ml} ml${u!=null?`<br><span style="color:var(--mu2)">≈ ${money(u*l.ml)}</span>`:''}</div>
+      <div class="l2">${l.ml} ml${u!=null?`<br><span style="color:var(--mu2)">≈ ${money(u*l.ml)}</span>`:''}${l.opt&&!l.ok?`<br><span style="color:var(--mu2)">可选·按 ${l.eff} ml 扣</span>`:''}</div>
       <div class="st">
         <span class="${l.ok?'pill ok':'pill bad'}">${l.ok?'库存充足':'缺 '+ml(Math.max(0,l.ml-l.have))}</span>
         <span class="tiny dim">现有 ${ml(l.have)}</span>

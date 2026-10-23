@@ -419,8 +419,30 @@ console.log('\n【17】分类 + 网格选择器');
   ok(t.$('.fprev').textContent.includes('Vodka'), '输入时预览实时更新');
 }
 
-/* ============ 场景 18：配方分类筛选 ============ */
-console.log('\n【18】配方分类筛选');
+/* ============ 场景 18：库存不足时材料行仍须显示 ============ */
+console.log('\n【18】缺料时材料行仍显示');
+{
+  const t = boot({stock:{},ledger:[],settings:{barName:'T',barSub:'T',owner:'',currency:'¥'}});  // 空库存
+  t.tab('mix');
+  t.setVal(t.$('#mixQ'), 'Negroni');
+  const it = t.$$('.recitem').find(el => el.querySelector('.rn').textContent.trim() === 'Negroni');
+  ok(!!it, '列表有 Negroni');
+  t.click(it);
+  const rows = t.$$('#recipeDetail .rd');
+  ok(rows.length === 3, `空库存下仍列出 3 种材料（实得 ${rows.length}）`);
+  const txt = t.$('#recipeDetail').textContent;
+  ok(/缺/.test(txt), '标注了缺料');
+  ok(txt.includes('Gin'), '材料名可见（用户能看到这杯酒需要什么）');
+  ok(t.$('[data-act="record"]').disabled, '缺料时不能记录');
+  // 补齐库存后应可记录
+  const d = t.db();
+  ['Gin','Sweet Vermouth','Campari'].forEach(n => d.stock[n] = {name:n,sizeMl:750,price:150,unopened:1,openedMl:0,note:''});
+  t.w.localStorage.setItem('hbl.v1', JSON.stringify(d));
+  t.w.eval("location.reload()");
+}
+
+console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
+console.log('\n【19】配方分类筛选');
 {
   const t = boot(null);
   t.tab('mix');
