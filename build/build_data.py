@@ -110,6 +110,7 @@ def convert_recipe(d):
         'methodZh': METHOD_ZH.get(method, method),
         'tags': [t for t in (d.get('tags') or []) if t not in ('IBA Cocktail',)][:4],
         'steps': (tr.get('s') if tr else '') or [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6],
+        'stepOrd': [step_order(x) for x in ((tr.get('s') if tr else '') or [s.strip() for s in re.split(r'\n+', d.get('instructions') or '') if s.strip()][:6])],
         'ings': ings,
     }
     styles, mstyle, base, lineage = classify(d.get('tags'), ings, ING_META)
@@ -228,20 +229,20 @@ ZH = {
     'Pineapple Syrup': '菠萝糖浆', 'Gentian Liqueur': '龙胆利口酒', 'Grapefruit bitters': '西柚苦精',
     'Ancho Reyes': 'Ancho Reyes 辣椒利口酒', 'Apple Cider': '苹果西打', 'Basil': '罗勒',
     'Navy Strength Gin': '海军 strength 金酒', 'Sparkling wine': '起泡酒', 'Jägermeister': '野格',
-    'Vanilla syrup': '香草糖浆', 'Coconut Rum': '椰子朗姆', 'Amaro Ramazzotti': 'Amaro Ramazzotti 苦味酒',
+    'Vanilla syrup': '香草糖浆', 'Coconut Rum': '椰子朗姆', 'Amaro Ramazzotti': 'Amaro Ramazzotti 苦酒',
     'Coconut Syrup': '椰子糖浆', 'Limoncello': '柠檬利口酒', 'Blended Scotch Whisky': '调和苏格兰威士忌',
     'Baileys Irish Cream': '百利甜', 'Fino': '菲诺雪莉', 'Walnut Liqueur': '核桃利口酒',
     'Cold brew coffee': '冷萃咖啡', 'Cilantro': '香菜', 'Strega': '斯特雷加利口酒',
     'Bitters': '苦精', 'Cask-Proof Whiskey': '原桶强度威士忌', 'Rose syrup': '玫瑰糖浆',
-    'Ice cream': '冰淇淋', 'Honey liqueur': '蜂蜜利口酒', 'Amaro': '苦味酒',
+    'Ice cream': '冰淇淋', 'Honey liqueur': '蜂蜜利口酒', 'Amaro': '苦酒',
     'Blue Curaçao': '蓝色库拉索', 'Marmalade': '橘子酱', 'Licor 43': 'Licor 43',
     'Fig jam': '无花果酱', 'Passoã': 'Passoã 坚果利口酒', 'Grapes': '葡萄',
     'Peach syrup': '桃子糖浆', 'Swedish punsch': '瑞典潘趣', 'Carrot juice': '胡萝卜汁',
     'Malört': '玛乐', 'Honey': '蜂蜜', 'Vanilla Extract': '香草精', 'Kiwi': '猕猴桃',
     'Orange Soda': '橙味汽水', 'Star anise': '八角', 'Pear liqueur': '梨利口酒',
-    'Grapefruit soda': '西柚汽水', 'Grape Brandy': '葡萄白兰地', 'Amaro Meletti': 'Amaro Meletti 苦味酒',
-    'Amaro Lazzaroni': 'Amaro Lazzaroni 苦味酒', 'Amaro CioCiaro': 'Amaro CioCiaro 苦味酒',
-    'Amaro Sibilla': 'Amaro Sibilla 苦味酒', 'Apricot liqueur': '杏子利口酒', 'Banana': '香蕉',
+    'Grapefruit soda': '西柚汽水', 'Grape Brandy': '葡萄白兰地', 'Amaro Meletti': 'Amaro Meletti 苦酒',
+    'Amaro Lazzaroni': 'Amaro Lazzaroni 苦酒', 'Amaro CioCiaro': 'Amaro CioCiaro 苦酒',
+    'Amaro Sibilla': 'Amaro Sibilla 苦酒', 'Apricot liqueur': '杏子利口酒', 'Banana': '香蕉',
     'Beet juice': '甜菜汁', 'Bigallet China China': 'Bigallet 苦酒', 'Becherovka': '贝赫罗夫卡',
     'Pedro Ximénez': '佩德罗·希梅内斯', 'Salers': '萨莱尔斯', 'Blackberries': '黑莓',
     'Clamato juice': '蛤蜊番茄汁', 'Horseradish': '辣根', 'Barbados Rum': '巴巴多斯朗姆',
@@ -263,7 +264,27 @@ ZH = {
     'Tangerine juice': '橘子汁', 'Umeshu': '梅酒', 'Hot chocolate': '热巧克力', 'Peach': '桃',
     'Avéze': 'Avéze 苦酒', 'Cocktail cherry': '鸡尾酒樱桃', 'Root beer': '根汁汽水',
     'Activated charcoal': '活性炭', 'Lillet Rose': 'Lillet Rose 桃红利口酒', 'Pelinkovac': '佩林科瓦茨',
-    'Domaine La Bohème Gentiane Extra Bitter Aperitif': 'La Bohème 龙胆特苦开胃酒',
+    'Domaine La Bohème Gentiane Extra Bitter Aperitif': 'La Bohème 龙胆苦酒',
+    # —— 网格里单行显示，中文名控制在 8 字以内 —— ——
+    'Amaro Ramazzotti': 'Ramazzotti 苦酒',
+    'Amaro Lazzaroni': 'Lazzaroni 苦酒',
+    'Amaro CioCiaro': 'CioCiaro 苦酒',
+    'Amaro Meletti': 'Meletti 苦酒',
+    'Amaro Sibilla': 'Sibilla 苦酒',
+    'Ancho Reyes': 'Ancho Reyes 辣椒酒',
+    'Lillet Rose': 'Lillet Rose 桃红酒',
+    'Amargo-Vallet': 'Vallet 苦酒',
+    'Italicus Rosolio di Bergamotto': 'Italicus 佛手柑酒',
+    'Navy Strength Gin': '海军金酒',
+    'Punt e Mes': 'Punt e Mes 苦酒',
+    'Cocchi Aperitivo Americano': 'Cocchi 美式酒',
+    'Passoã': 'Passoã 坚果酒',
+    'Underberg': 'Underberg 苦酒',
+    'Sanbitter': 'Sanbitter 苦酒',
+    'Bigallet China China': 'Bigallet 苦酒',
+    'Fernet Branca': 'Fernet 苦艾酒',
+    'Cherry Heering': 'Heering 樱桃酒',
+    'Domaine La Bohème Gentiane Extra Bitter Aperitif': 'La Bohème 龙胆苦酒',
 }
 
 
@@ -278,7 +299,7 @@ CAT_ZH = {
     'Spirits > Sugarcane-based spirits > Rum > Dark Rum': '烈酒 › 甘蔗基 › 朗姆 › 黑朗姆',
     'Sweeteners > Syrups': '甜味剂 › 糖浆',
     'Sweeteners > Syrups > Simple Syrup': '甜味剂 › 糖浆 › 基础糖浆',
-    'Apéritif > Amaro': '开胃酒 › 苦味酒',
+    'Apéritif > Amaro': '开胃酒 › 苦酒',
     'Juices > Citrus juice': '果汁 › 柑橘汁',
     'Spirits > Brandy > Fruit brandy': '烈酒 › 白兰地 › 果酒白兰地',
     'Spirits > Brandy': '烈酒 › 白兰地',
@@ -345,6 +366,13 @@ BASE_RULES = [
 
 
 ING_META = {}   # 原料元信息缓存，main() 填充
+
+
+def step_order(text):
+    """步骤是否带序号。带序号的剥离前缀，由 UI 统一用 counter 生成；
+    不带序号的（子标题、备注）保持原样，不加序号。"""
+    m = re.match(r'^(\d+)\.\s*', text.strip())
+    return int(m.group(1)) if m else 0
 
 
 def classify(recipe_tags, ings, ing_meta):
@@ -418,7 +446,7 @@ def classify(recipe_tags, ings, ing_meta):
 SCHEMA_VER = 2
 R_FIELDS = ['id', 'name', 'desc', 'garnish', 'steps', 'abv', 'glass', 'glassZh',
             'method', 'methodZh', 'tags', 'styles', 'style', 'base', 'lineage',
-            'tier', 'zh', 'ings']
+            'tier', 'zh', 'ings', 'stepOrd']
 I_FIELDS = ['ml', 'amt', 'u', 'opt', 'nonmetered', 'note']
 IL_FIELDS = ['n', 'zh', 'refSize', 'refPrice']   # 原料全局表（n/zh/refSize/refPrice 与配方无关）
 M_FIELDS = ['cat', 'catZh', 'catTop', 'catTopZh', 'abv', 'zh', 'desc']
@@ -450,7 +478,7 @@ def pack(recipes, ing_meta):
             r.get('steps', []), r.get('abv'), r.get('glass', ''), r.get('glassZh', ''),
             r.get('method', ''), r.get('methodZh', ''), r.get('tags', []), r.get('styles', []),
             r.get('style', ''), r.get('base', ''), r.get('lineage', ''), r.get('tier', 0),
-            1 if r.get('zh') else 0, ings,
+            1 if r.get('zh') else 0, ings, r.get('stepOrd') or [],
         ])
     packed_m = {}
     for k, v in ing_meta.items():

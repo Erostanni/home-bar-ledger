@@ -30,6 +30,14 @@
   --ease:cubic-bezier(.22,.61,.36,1);
   --fs:15px;
   --sh:0 10px 26px rgba(0,0,0,.24);
+  /* ---- 设计 token：间距 4/8 网格、圆角三档、阴影三档、字阶 ---- */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px;
+  --r-sm:7px; --r-md:10px; --r-lg:14px;
+  --sh-sm:0 1px 2px rgba(0,0,0,.16);
+  --sh-md:0 6px 16px rgba(0,0,0,.22);
+  --sh-lg:0 18px 48px rgba(0,0,0,.34);
+  --fs-xs:10.5px; --fs-sm:11.5px; --fs-base:13.5px; --fs-md:15px; --fs-lg:18px; --fs-xl:25px;
+  --ring:0 0 0 3px color-mix(in srgb,var(--gold) 34%, transparent);
 }
 
 /* ============ 浅色主题 ============ */
@@ -61,6 +69,7 @@ html[data-theme="light"] body::before{
 html,body{margin:0;padding:0}
 body{
   background:var(--bg); color:var(--tx); min-height:100vh;
+  transition:background .3s var(--ease), color .3s var(--ease);
   font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   -webkit-font-smoothing:antialiased;
 }
@@ -101,14 +110,16 @@ a{color:var(--gold)}
 .brand p{margin:0;font-size:8.5px;letter-spacing:3.4px;color:var(--mu2);font-family:var(--mono)}
 
 .tabs{display:flex;gap:2px;margin-left:auto;background:var(--tabs-bg);padding:4px;
-  border-radius:11px;border:1px solid var(--line)}
+  border-radius:11px;border:1px solid var(--line);position:relative}
+.tabs .ind{position:absolute;top:4px;bottom:4px;border-radius:8px;background:linear-gradient(180deg,var(--gold-l),var(--gold));
+  box-shadow:0 2px 10px rgba(217,164,65,.28);transition:transform .34s var(--ease),width .34s var(--ease);z-index:0}
+.tabs button{position:relative;z-index:1}
 .tabs button{
   padding:7px 17px;border-radius:8px;font-size:13px;color:var(--mu);
   transition:.18s var(--ease); white-space:nowrap;letter-spacing:.3px;
 }
 .tabs button:hover{color:var(--tx);background:var(--tabs-hover)}
-.tabs button.on{background:linear-gradient(180deg,var(--gold-l),var(--gold));color:var(--gold-ink);font-weight:600;
-  box-shadow:0 2px 10px rgba(217,164,65,.25)}
+.tabs button.on{color:var(--gold-ink);font-weight:600;background:none}
 .iconbtn{
   width:34px;height:34px;border-radius:8px;border:1px solid var(--line);color:var(--mu);
   display:grid;place-items:center;font-size:15px;transition:.15s;
@@ -116,6 +127,17 @@ a{color:var(--gold)}
 .iconbtn:hover{color:var(--gold);border-color:var(--line2);background:var(--panel)}
 
 main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20px 70px}
+/* ---- 页头：每个页面的入口 ---- */
+.pagehead{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--sp-4);
+  margin:0 0 var(--sp-4);padding-bottom:var(--sp-3);border-bottom:1px solid var(--line)}
+.pagehead h2{margin:0;font-family:var(--serif);font-size:var(--fs-xl);line-height:1.12;
+  letter-spacing:.2px;font-weight:600;color:var(--tx)}
+.pagehead p{margin:6px 0 0;font-size:var(--fs-sm);color:var(--mu);line-height:1.6;max-width:62ch}
+.pagehead .phright{display:flex;gap:var(--sp-2);align-items:center;flex:0 0 auto;padding-bottom:2px}
+/* 数字统一等宽对齐，金额不再左右跳 */
+.mono,.metric .v,.stockcard .amt,.led .amt,.rd .l2,.rrow .v,.fcell,.step input{font-variant-numeric:tabular-nums}
+/* 键盘可达性 */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
 .view{display:none;animation:fade .32s var(--ease)}
 .view.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -140,9 +162,11 @@ main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20p
 .sp{flex:1}
 
 .btn{
-  padding:8px 15px;border-radius:8px;border:1px solid var(--line2);background:var(--panel2);
-  color:var(--tx);font-size:13px;transition:.15s;white-space:nowrap;
+  padding:8px 15px;border-radius:var(--r-sm);border:1px solid var(--line2);background:var(--panel2);
+  color:var(--tx);font-size:13px;transition:.16s var(--ease);white-space:nowrap;
 }
+.btn:active{transform:translateY(1px)}
+.btn.gold:active{transform:translateY(1px);filter:brightness(.96)}
 .btn:hover{border-color:var(--gold-d);background:var(--panel2)}
 .btn.gold{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600}
 .btn.gold:hover{background:var(--gold-l)}
@@ -156,8 +180,15 @@ main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20p
 }
 .inp:focus{border-color:var(--gold-d);background:var(--panel3)}
 label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-spacing:.4px}
-.empty{text-align:center;color:var(--mu2);padding:38px 16px;font-size:13px}
-.empty b{display:block;color:var(--mu);font-size:14px;margin-bottom:6px;font-weight:500}
+.empty{text-align:center;color:var(--mu2);padding:44px 20px 40px;font-size:13px}
+.empty b{display:block;color:var(--tx);font-size:15px;margin-bottom:8px;font-weight:500;font-family:var(--serif)}
+.empty .eglyph{width:52px;height:52px;margin:0 auto 16px;border-radius:14px;display:grid;place-items:center;
+  background:linear-gradient(160deg,var(--panel2),var(--panel3));border:1px solid var(--line2);
+  color:var(--gold);font-size:22px;box-shadow:var(--sh-sm)}
+.empty .steps{display:inline-flex;flex-direction:column;gap:7px;margin:18px auto 0;text-align:left;max-width:340px}
+.empty .steps div{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--mu)}
+.empty .steps i{width:19px;height:19px;border-radius:50%;background:var(--panel2);border:1px solid var(--line2);
+  color:var(--gold);font-style:normal;font-size:10.5px;display:grid;place-items:center;flex:0 0 auto;font-family:var(--mono)}
 
 .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;background:var(--panel2);border:1px solid var(--line2);color:var(--mu)}
 .pill.ok{color:var(--ok);border-color:rgba(127,163,92,.4)}
@@ -186,8 +217,8 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
   box-shadow:0 1px 0 var(--inset) inset, var(--sh)}
 .metric{flex:1 1 130px;padding:14px 18px 13px;position:relative;min-width:0}
 .metric + .metric::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--line)}
-.metric .k{font-size:9.5px;color:var(--mu2);letter-spacing:1.6px;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.metric .k{font-size:9px;color:var(--mu2);letter-spacing:1.8px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
 .metric .v{font-family:var(--serif);font-size:27px;line-height:1.05;margin-top:5px;letter-spacing:-.5px;
   display:flex;align-items:baseline;gap:3px}
 .metric .v small{font-family:var(--sans);font-size:11.5px;color:var(--mu);font-weight:400;letter-spacing:0}
@@ -257,6 +288,8 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .steps{counter-reset:s;padding:0;margin:0;list-style:none}
 .steps li{counter-increment:s;position:relative;padding:7px 0 7px 30px;font-size:13.5px;color:var(--tx2);border-bottom:1px dashed var(--line)}
 .steps li:last-child{border-bottom:none}
+.steps li.sub-step::before{content:none;width:auto;height:auto;background:none;border:none;
+  color:var(--mu2);font-size:11px;top:9px;left:0}
 .steps li::before{
   content:counter(s);position:absolute;left:0;top:8px;width:19px;height:19px;border-radius:50%;
   background:var(--panel2);border:1px solid var(--line2);color:var(--gold);
@@ -269,15 +302,32 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 台账 ---------- */
 .ledgerlist{display:flex;flex-direction:column;gap:9px}
-.led{background:linear-gradient(90deg,var(--panel),var(--panel3));border:1px solid var(--line);border-radius:11px;
-  padding:12px 15px;display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;
+.ledgerlist{display:flex;flex-direction:column;gap:2px}
+.led{position:relative;background:transparent;border:1px solid transparent;border-radius:var(--r-md);
+  padding:11px 14px 11px 18px;display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;
   transition:.16s var(--ease)}
-.led:hover{border-color:var(--line2);background:linear-gradient(90deg,var(--panel2),var(--panel3))}
-.led .num{font-family:var(--mono);font-size:10.5px;color:var(--gold-d);width:44px;letter-spacing:.5px}
-.led .nm{font-weight:600;font-size:14px;font-family:var(--serif);letter-spacing:.2px}
+.led::before{content:"";position:absolute;left:6px;top:14px;bottom:14px;width:2px;border-radius:2px;
+  background:var(--line2);transition:.16s var(--ease)}
+.led:hover{background:var(--panel);border-color:var(--line)}
+.led:hover::before{background:var(--gold);top:10px;bottom:10px}
+.led .num{font-family:var(--mono);font-size:10.5px;color:var(--mu2);width:42px;letter-spacing:.6px;
+  transition:.16s var(--ease)}
+.led:hover .num{color:var(--gold)}
+.led .nm{font-weight:600;font-size:14.5px;font-family:var(--serif);letter-spacing:.2px;color:var(--tx)}
+.led .dt{font-family:var(--mono);font-size:11px;color:var(--mu2);margin-top:3px;letter-spacing:.2px}
 .led .dt{font-family:var(--mono);font-size:11px;color:var(--mu2);margin-top:2px}
-.led .amt{font-family:var(--mono);font-size:12.5px;color:var(--mu);text-align:right;white-space:nowrap}
-.led .amt b{color:var(--tx);font-weight:600}
+.led .amt{font-family:var(--mono);font-size:12.5px;color:var(--mu);text-align:right;white-space:nowrap;
+  min-width:96px}
+.led .amt b{color:var(--tx);font-weight:600;font-size:14px}
+.led .amt em{font-style:normal;font-size:10.5px;color:var(--mu2);margin-left:4px}
+.led .iconmini{opacity:0;transition:.16s var(--ease)}
+.led:hover .iconmini{opacity:1}
+.led:hover .iconmini:hover{opacity:1}
+/* 触摸设备没有 hover —— 撤销按钮必须常显，否则手机上无法撤销 */
+@media (hover:none){
+  .led .iconmini{opacity:.6}
+  .stockcard .acts{opacity:1}
+}
 .filterbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .filterbar select{padding:7px 10px;background:var(--panel3);border:1px solid var(--line);border-radius:8px;font-size:13px}
 
@@ -328,8 +378,12 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .printbar{display:flex;gap:9px;flex-wrap:wrap}
 
 /* ---------- 弹窗 ---------- */
-.mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(3px);z-index:50;display:grid;place-items:center;padding:20px}
-.modal{background:var(--panel);border:1px solid var(--line2);border-radius:14px;width:100%;max-width:460px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mask{position:fixed;inset:0;background:var(--mask);backdrop-filter:blur(4px);z-index:50;display:grid;place-items:center;
+  padding:20px;animation:fade .22s var(--ease)}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r-lg);width:100%;max-width:460px;
+  max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--sh-lg);
+  animation:modalIn .28s var(--ease)}
+@keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 .modal .body{overflow-y:auto;flex:1 1 auto;min-height:0}
 .modal header,.modal footer{flex:0 0 auto}
 .modal header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
@@ -515,6 +569,7 @@ html.no-motion *{animation:none !important;transition:none !important}
     </div>
   </div>
   <nav class="tabs" id="tabs">
+    <span class="ind" aria-hidden="true"></span>
     <button data-v="cabinet">酒柜</button>
     <button data-v="mix">调制</button>
     <button data-v="ledger">台账</button>
@@ -636,6 +691,17 @@ async function loadEnglish(){
   }catch(e){
     return false;
   }finally{ enLoading=false; }
+}
+
+/** Tab 滑动指示条：把高亮块滑到当前页 */
+function moveTabIndicator(){
+  const tabs=document.getElementById('tabs');
+  if(!tabs) return;
+  const ind=tabs.querySelector('.ind');
+  const act=tabs.querySelector('button.on');
+  if(!ind||!act) return;
+  ind.style.width=act.offsetWidth+'px';
+  ind.style.transform='translateX('+(act.offsetLeft-4)+'px)';
 }
 
 /* ============================ 状态 ============================ */
@@ -817,12 +883,19 @@ function render(){
   else if(view==='statement') html=viewStatement();
   app.innerHTML=html;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.v===view));
+  moveTabIndicator();
   document.getElementById('barNameTitle').textContent=db.settings.barName||'家庭调酒台账';
   applyTheme();
   bind();
 }
 
 /* ============================ 视图：酒柜 ============================ */
+/** 统一页头 */
+function pageHead(title, sub, right){
+  return '<div class="pagehead"><div class="phtxt"><h2>'+title+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div>'
+    + (right?'<div class="phright">'+right+'</div>':'')+'</div>';
+}
+
 function viewCabinet(){
   const allNames=Object.keys(db.stock);
   // 分类筛选
@@ -861,6 +934,8 @@ function viewCabinet(){
   }).join('');
 
   return `
+  ${pageHead('酒柜','家里有什么、还剩多少，调制时自动扣减',
+    '<button class="btn" data-act="import">导入</button><button class="btn" data-act="export">导出备份</button><button class="btn gold" data-act="addstock">+ 添加原料</button>')}
   <div class="metrics">
     <div class="metric"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
     <div class="metric"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
@@ -869,16 +944,8 @@ function viewCabinet(){
     <div class="metric"><div class="k">配方库</div><div class="v">${RECIPES.length}<small> 款</small></div></div>
   </div>
 
-  <div class="card" style="margin-bottom:16px">
-    <div class="spread">
-      <div><h3>酒柜</h3><div class="sub">记录你拥有的原料与余量，调制时自动扣减</div></div>
-      <div class="row wrap">
-        <button class="btn" data-act="import">导入</button>
-        <button class="btn" data-act="export">导出备份</button>
-        <button class="btn gold" data-act="addstock">+ 添加原料</button>
-      </div>
-    </div>
-    ${allNames.length? `<div class="stockfilter">
+  ${allNames.length? `<div class="card" style="margin-bottom:16px">
+    <div class="stockfilter" style="border-top:none;padding-top:2px;margin-top:0">
       <button class="sfcat ${ui.stockCat==='全部'?'on':''}" data-act="stockcat" data-c="全部">全部</button>
       ${cats.filter(c=>c!=='全部').map(c=>`<button class="sfcat ${ui.stockCat===c?'on':''}" data-act="stockcat" data-c="${esc(c)}">${esc(c)}</button>`).join('')}
       <select data-act="stocksort" id="stockSort">
@@ -891,8 +958,16 @@ function viewCabinet(){
   </div>
 
   ${names.length? `<div class="stocklist">${cards}</div>`
-    : `<div class="card"><div class="empty"><b>酒柜还是空的</b>先添加几瓶常备酒，再去「调制」记一杯<br>支持「添加原料」时勾选参考价快速填充
-       <div class="row" style="justify-content:center;gap:9px;margin-top:16px">
+    : `<div class="card"><div class="empty">
+       <div class="eglyph">◑</div>
+       <b>酒柜还是空的</b>
+       先把家里有的酒登记进来，调制时就能自动扣减
+       <div class="steps">
+         <div><i>1</i>载入一份常备酒柜，或手动添加</div>
+         <div><i>2</i>去「调制」选一款酒，记录第一杯</div>
+         <div><i>3</i>月底来「账单」看这个月的消耗</div>
+       </div>
+       <div class="row" style="justify-content:center;gap:9px;margin-top:22px">
          <button class="btn" data-act="seedbar">载入常备酒柜</button>
          <button class="btn gold" data-act="addstock">+ 添加原料</button>
        </div></div></div>`}
@@ -979,6 +1054,7 @@ function viewMix(){
   const sel=BY_ID[ui.mixSel];
   const untranslatedCount=(ui.mixTier==='all')?RECIPES.filter(r=>!r.zh).length:0;
   return `
+  ${pageHead('调制','663 款配方，按库存、风格和基酒挑今天喝什么')}
   <div class="mixwrap">
     <div class="card" style="position:sticky;top:74px">
       <div class="searchbar"><input class="inp" id="mixQ" placeholder="搜酒名 / 原料 / 杯型…" value="${esc(ui.mixQ)}"></div>
@@ -1060,7 +1136,11 @@ function recipeDetail(r){
     ${r.garnish?`<div class="rsec" style="color:var(--gold);font-size:10.5px;letter-spacing:1.6px;margin-top:16px">装饰</div><div class="tiny">${esc(r.garnish)}</div>
       ${showEn&&r.garnishEn?`<div class="tiny" style="color:var(--mu2);font-style:italic;margin-top:2px">${esc(r.garnishEn)}</div>`:''}`:''}
 
-    ${r.steps&&r.steps.length?`<div class="rsec" style="color:var(--gold);font-size:10.5px;letter-spacing:1.6px;margin-top:16px">做法</div><ol class="steps">${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>
+    ${r.steps&&r.steps.length?`<div class="rsec" style="color:var(--gold);font-size:10.5px;letter-spacing:1.6px;margin-top:16px">做法</div><ol class="steps">${r.steps.map((s,i)=>{
+      const ord=(r.stepOrd&&r.stepOrd[i])||0;
+      const txt=ord?String(s).replace(/^\d+\.\s*/,''):s;
+      return '<li'+(ord?'':' class="sub-step"')+'>'+esc(txt)+'</li>';
+    }).join('')}</ol>
       ${showEn&&r.stepsEn&&r.stepsEn.length?`<ol class="steps" style="opacity:.55;margin-top:8px">${r.stepsEn.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}`:''}
 
     <div class="rrule2" style="border-top:1px solid var(--line);margin:18px 0 14px"></div>
@@ -1084,6 +1164,7 @@ function viewLedger(){
   const vol=list.reduce((s,e)=>s+(e.totalMl||0),0);
 
   return `
+  ${pageHead('台账','每一杯都记在这里，可按月回看')}
   <div class="metrics">
     <div class="metric accent"><div class="k">总杯数</div><div class="v">${cups}<small> 杯</small></div></div>
     <div class="metric"><div class="k">记录条数</div><div class="v">${list.length}</div></div>
@@ -1105,7 +1186,7 @@ function viewLedger(){
         <div class="nm">${esc(e.name)}</div>
         <div class="dt">${fmtDate(e.ts)} · ${e.servings} 杯 · ${ml(e.totalMl)}</div>
       </div>
-      <div class="amt"><b>${money0(e.cost||0)}</b> 成本</div>
+      <div class="amt"><b>${money0(e.cost||0)}</b><em>成本</em></div>
       <button class="iconmini" data-act="undorec" data-id="${e.id}" title="撤销并退回库存">↩</button>
     </div>`).join('') || '<div class="card"><div class="empty"><b>还没有记录</b>去「调制」记下第一杯</div></div>'}
   </div>`;
@@ -1147,6 +1228,7 @@ function viewStatement(){
   if(!months.includes(m)) months.unshift(m);
 
   return `
+  ${pageHead('账单','这个月喝了多少、花了多少')}
   <div class="noprint" style="margin-bottom:16px">
     <div class="filterbar">
       <button class="btn sm" data-act="stmtprev">← 上月</button>
@@ -1242,8 +1324,11 @@ function receiptHTML(d){
 function bind(){
   // 标签页
   document.querySelectorAll('#tabs button').forEach(b=>{
-    b.onclick=()=>{ view=b.dataset.v; render(); };
+    b.onclick=()=>{ view=b.dataset.v; render(); requestAnimationFrame(moveTabIndicator); };
   });
+  requestAnimationFrame(moveTabIndicator);
+  setTimeout(moveTabIndicator, 60);
+  window.addEventListener('resize', moveTabIndicator);
   const q=document.getElementById('mixQ');
   if(q){
     q.oninput=()=>{
