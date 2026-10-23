@@ -492,11 +492,11 @@ console.log('\n【19】配方分类筛选');
   const t = boot(null);
   t.tab('mix');
   const rows = t.$$('.mixfrow');
-  ok(rows.length === 3, `三行筛选（风格/基酒/谱系），实得 ${rows.length}`);
-  const styleBtns = rows[0].querySelectorAll('.sfcat');
+  ok(rows.length === 4, `四行筛选（可做/风格/基酒/谱系），实得 ${rows.length}`);
+  const styleBtns = rows[1].querySelectorAll('.sfcat');
   ok(styleBtns.length >= 15, `风格选项 ${styleBtns.length} 个`);
   // 点「金酒」基酒
-  const baseRow = rows[1];
+  const baseRow = rows[2];
   const gin = [...baseRow.querySelectorAll('.sfcat')].find(b => b.textContent.includes('金酒'));
   ok(!!gin, '基酒行有「金酒」');
   t.click(gin);
@@ -511,7 +511,7 @@ console.log('\n【19】配方分类筛选');
   t.click(clear);
   ok(t.$('[data-act="mixclear"]') === null, '清除后按钮消失');
   // 谱系筛选
-  const lin = [...rows[2].querySelectorAll('.sfcat')].find(b => b.textContent.includes('提基'));
+  const lin = [...rows[3].querySelectorAll('.sfcat')].find(b => b.textContent.includes('提基'));
   t.click(lin);
   const tiki = t.w.eval('JSON.stringify(RECIPES.filter(r=>r.lineage==="提基").length)');
   ok(parseInt(tiki) > 20, `提基谱系 ${tiki} 款`);
@@ -520,6 +520,72 @@ console.log('\n【19】配方分类筛选');
   t.setVal(t.$('#mixQ'), '伏特加');
   const vCount = t.w.eval("RECIPES.filter(r=>r.ings.some(i=>(i.n||'').toLowerCase().includes('伏特加')||(i.zh||'').includes('伏特加'))).length");
   ok(t.$$('.recitem').length === vCount, `搜「伏特加」按中文名命中 ${vCount} 款`);
+  // 「可做 / 缺料」维度
+  const makeRow = t.$$('.mixfrow')[0];
+  const canDo = [...makeRow.querySelectorAll('.sfcat')].find(b=>b.textContent.includes('能做'));
+  const lack  = [...makeRow.querySelectorAll('.sfcat')].find(b=>b.textContent.includes('缺料'));
+  ok(!!canDo && !!lack, '有「能做 / 缺料」筛选');
+  t.click(canDo);
+  const okN = t.w.eval("Object.values(eval('makeMap')).filter(Boolean).length");
+  ok(t.$$('.recitem').length === Math.min(okN,150), `「能做」列出 ${okN} 款`);
+  // ⚠️ 点击会触发 render → DOM 重建 → 旧引用失效，必须重新查询
+  t.setVal(t.$('#mixQ'), '');           // 清掉搜索词，单独验证筛选维度
+  const lack2 = [...t.$$('.mixfrow')[0].querySelectorAll('.sfcat')].find(b=>b.textContent.includes('缺料'));
+  t.click(lack2);
+  const lackN = t.w.eval("RECIPES.length - Object.values(eval('makeMap')).filter(Boolean).length");
+  ok(t.$$('.recitem').length === Math.min(lackN,150), `「缺料」列出 ${lackN} 款（分页显示 ${Math.min(lackN,150)}）`);
+  // 有库存时「能做」应非空
+  const st={};
+  ['Gin','Sweet Vermouth','Campari'].forEach(n=>st[n]={name:n,sizeMl:750,price:150,unopened:1,openedMl:700,note:''});
+  const t2 = boot({stock:st,ledger:[],settings:{barName:'T',barSub:'T',owner:'',currency:'¥'}});
+  t2.tab('mix');
+  const can2 = [...t2.$$('.mixfrow')[0].querySelectorAll('.sfcat')].find(b=>b.textContent.includes('能做'));
+  t2.click(can2);
+  const n2 = t2.$$('.recitem').length;
+  ok(n2 > 0, `材料齐备时「能做」列出 ${n2} 款`);
+}
+
+/* ============ 场景 21：添加原料的交互改造 ============ */
+console.log('\n【21】添加原料交互');
+{
+  const t = boot({stock:{},ledger:[],settings:{barName:'T',barSub:'T',owner:'',currency:'¥'}});
+  t.tab('cabinet');
+  t.click(t.$('[data-act="addstock"]'));
+  ok(t.$$('.step').length === 2, '有步进器（瓶数 / 规格）');
+  ok(t.$$('.quick').length === 4, '有 4 组快捷值');
+  ok(t.$$('.sliderrow').length === 2, '有 2 个滑块（开封余量 / 单价）');
+
+  // 步进器
+  const before = +t.$('#fUnopened').value;
+  t.click(t.$$('[data-step="fUnopened"][data-d="1"]')[0]);
+  ok(+t.$('#fUnopened').value === before+1, `步进器 +1：${before} → ${t.$('#fUnopened').value}`);
+  t.click(t.$$('[data-step="fUnopened"][data-d="-1"]')[0]);
+  ok(+t.$('#fUnopened').value === before, '步进器 -1 还原');
+
+  // 打字选原料 → 自动带出规格与参考价（先测，规格此时还是空的）
+  t.setVal(t.$('#fName'), '金酒');
+  ok(t.$('#fSize').value === '750', '自动带出规格 750');
+  ok(t.$('#fPrice').value === '180', '自动带出参考价 180');
+
+  // 快捷值
+  t.click(t.$$('[data-quick="fSize"] button').find(b=>b.textContent.trim()==='700'));
+  ok(t.$('#fSize').value === '700', '快捷值设定规格 700');
+  // 滑块上限跟随规格
+  ok(t.$('#fOpened').getAttribute('max') === '700', '已开封滑块上限跟随规格');
+  // 手动改过的规格不该被后续选择覆盖
+  t.setVal(t.$('#fName'), '伏特加');
+  ok(t.$('#fSize').value === '700', '手动改过的规格不被覆盖');
+  t.setVal(t.$('#fName'), '金酒');
+
+  // 保存后弹窗不关、名称清空 → 可连续添加
+  t.click(t.$('#mSave'));
+  ok(!!t.$('#fName'), '保存后弹窗仍开着（可连续添加）');
+  ok(t.$('#fName').value === '', '保存后原料名已清空');
+  ok(t.db().stock['Gin'], '原料已入库');
+  // 接着加第二种
+  t.setVal(t.$('#fName'), '伏特加');
+  t.click(t.$('#mSave'));
+  ok(!!t.db().stock['Vodka'], '可连续添加第二种原料');
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);

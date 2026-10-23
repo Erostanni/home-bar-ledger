@@ -430,6 +430,23 @@ html.no-motion *{animation:none !important;transition:none !important}
 .fcell .e{font-size:9.5px;color:var(--mu2);font-family:var(--mono);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fempty{padding:14px 4px;color:var(--mu2);font-size:12px;text-align:center;grid-column:1/-1}
 .fprev{margin-top:9px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel3);display:none}
+/* 步进器 */
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;
+  background:var(--panel3);overflow:hidden;height:32px}
+.step button{width:30px;height:100%;color:var(--mu);font-size:16px;line-height:1;transition:.12s;flex:0 0 auto}
+.step button:hover{background:var(--panel2);color:var(--gold)}
+.step input{width:64px;height:100%;text-align:center;background:transparent;border:none;
+  border-left:1px solid var(--line);border-right:1px solid var(--line);outline:none;
+  font-family:var(--mono);font-size:13px;color:var(--tx)}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.quick{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.quick button{padding:2px 9px;border-radius:12px;border:1px solid var(--line);background:var(--panel3);
+  color:var(--mu2);font-size:10.5px;cursor:pointer;font-family:var(--mono);transition:.12s}
+.quick button:hover{border-color:var(--gold-d);color:var(--tx)}
+.quick button.on{border-color:var(--gold);color:var(--gold)}
+.sliderrow{display:flex;align-items:center;gap:11px}
+.sliderrow input[type=range]{flex:1;min-width:80px}
+.sliderrow .slabel{font-family:var(--mono);font-size:12px;color:var(--tx);min-width:56px;text-align:right}
 .fprev.on{display:block}
 .fprev .fptitle{font-size:13px;color:var(--tx);margin-bottom:5px}
 .fprev .fpmeta{display:flex;flex-wrap:wrap;gap:6px;font-size:11px}
@@ -635,6 +652,7 @@ let ui = {
   mixStyle: '全部',
   mixBase: '全部',
   mixLineage: '全部',
+  mixMake: '全部',
   mixLimit: 150,
 };
 
@@ -894,15 +912,44 @@ function renderCanMake(){
 }
 
 /* ============================ 视图：调制 ============================ */
+/* 「现在能不能做」判定：所有可计量材料库存都够做 1 杯 */
+let MAKE_OK = null;
+function makeMap(){
+  if(MAKE_OK) return MAKE_OK;
+  MAKE_OK = {};
+  for(const r of RECIPES){
+    const p = planFor(r, 1);
+    MAKE_OK[r.id] = p.missing.length === 0;
+  }
+  return MAKE_OK;
+}
+
 /* 某个维度的可选值 + 计数（只统计当前其它筛选条件下的） */
+function mixPass(r, dim){
+  if(ui.mixTier==='classic' && dim!=='tier' && r.tier!==1) return false;
+  if(ui.mixStyle!=='全部' && dim!=='style' && r.style!==ui.mixStyle) return false;
+  if(ui.mixBase!=='全部' && dim!=='base' && r.base!==ui.mixBase) return false;
+  if(ui.mixLineage!=='全部' && dim!=='lineage' && r.lineage!==ui.mixLineage) return false;
+  if(ui.mixMake!=='全部' && dim!=='make'){
+    const ok = makeMap()[r.id];
+    if(ui.mixMake==='能做' && !ok) return false;
+    if(ui.mixMake==='缺料' && ok) return false;
+  }
+  return true;
+}
 function mixFacet(dim){
   const cnt={};
   for(const r of RECIPES){
-    if(ui.mixTier==='classic' && r.tier!==1) continue;
-    if(ui.mixStyle!=='全部' && dim!=='style' && r.style!==ui.mixStyle) continue;
-    if(ui.mixBase!=='全部' && dim!=='base' && r.base!==ui.mixBase) continue;
-    if(ui.mixLineage!=='全部' && dim!=='lineage' && r.lineage!==ui.mixLineage) continue;
-    cnt[r[dim]]=(cnt[r[dim]]||0)+1;
+    if(!mixPass(r,dim)) continue;
+    const k = dim==='make' ? (makeMap()[r.id]?'能做':'缺料') : r[dim];
+    cnt[k]=(cnt[k]||0)+1;
+  }
+  // 「能做 / 缺料」是固定的两个选项，即使计数为 0 也要列出来，
+  // 否则用户看不到这个筛选维度存在
+  if(dim==='make'){
+    if(cnt['能做']===undefined) cnt['能做']=0;
+    if(cnt['缺料']===undefined) cnt['缺料']=0;
+    return [['能做',cnt['能做']],['缺料',cnt['缺料']]];
   }
   return Object.entries(cnt).sort((a,b)=>b[1]-a[1]);
 }
@@ -917,12 +964,8 @@ function mixFilterRow(label, key, facets){
 
 function viewMix(){
   const q=ui.mixQ.trim().toLowerCase();
-  const tierOk = r => ui.mixTier==='all' || r.tier===1;
   let list=RECIPES.filter(r=>{
-    if(!tierOk(r)) return false;
-    if(ui.mixStyle!=='全部' && r.style!==ui.mixStyle) return false;
-    if(ui.mixBase!=='全部' && r.base!==ui.mixBase) return false;
-    if(ui.mixLineage!=='全部' && r.lineage!==ui.mixLineage) return false;
+    if(!mixPass(r,'')) return false;
     if(!q) return true;
     if(r.name.toLowerCase().includes(q)) return true;
     if(r.glass&&r.glass.toLowerCase().includes(q)) return true;
@@ -940,6 +983,7 @@ function viewMix(){
         <button class="sfcat ${ui.mixTier==='all'?'on':''}" data-act="mixtier" data-t="all">全部 ${RECIPES.length}</button>
         <button class="sfcat ${ui.mixTier==='classic'?'on':''}" data-act="mixtier" data-t="classic">经典 ${RECIPES.filter(r=>r.tier===1).length}</button>
       </div>
+      ${mixFilterRow('库存', 'mixMake', mixFacet('make'))}
       ${mixFilterRow('风格', 'mixStyle', mixFacet('style'))}
       ${mixFilterRow('基酒', 'mixBase', mixFacet('base'))}
       ${mixFilterRow('谱系', 'mixLineage', mixFacet('lineage'))}
@@ -1250,7 +1294,7 @@ function handle(act,d){
     case 'stockcat': ui.stockCat = d.c; return render();
     case 'mixtier': ui.mixTier = d.t; ui.mixLimit=150; return render();
     case 'mixfilter': ui[d.k]=d.v; ui.mixLimit=150; return render();
-    case 'mixclear': ui.mixStyle='全部'; ui.mixBase='全部'; ui.mixLineage='全部'; ui.mixTier='all'; ui.mixLimit=150; return render();
+    case 'mixclear': ui.mixStyle='全部'; ui.mixBase='全部'; ui.mixLineage='全部'; ui.mixMake='全部'; ui.mixTier='all'; ui.mixLimit=150; return render();
     case 'mixmore': ui.mixLimit+=200; return render();
   }
 }
@@ -1268,16 +1312,84 @@ function stockForm(name){
       <div class="fgrid" id="fGrid"></div>
       <div class="fprev" id="fPrev"></div>
     </div>
-    <div class="row" style="gap:10px">
-      <div class="fld sp"><label class="lb">整瓶数</label><input class="inp" id="fUnopened" type="number" min="0" step="1" value="${s.unopened||0}"></div>
-      <div class="fld sp"><label class="lb">规格 (ml/瓶)</label><input class="inp" id="fSize" type="number" min="0" step="1" value="${s.sizeMl||''}"></div>
+    <div class="fld">
+      <label class="lb">整瓶数</label>
+      <div class="row" style="gap:10px">
+        <div class="step"><button type="button" data-step="fUnopened" data-d="-1">−</button><input id="fUnopened" type="number" min="0" step="1" value="${s.unopened||0}"><button type="button" data-step="fUnopened" data-d="1">+</button></div>
+        <div class="quick" data-quick="fUnopened" data-vals="1,2,3,6"></div>
+      </div>
     </div>
-    <div class="row" style="gap:10px">
-      <div class="fld sp"><label class="lb">已开封余量 (ml)</label><input class="inp" id="fOpened" type="number" min="0" step="1" value="${s.openedMl||0}"></div>
-      <div class="fld sp"><label class="lb">整瓶单价</label><input class="inp" id="fPrice" type="number" min="0" step="0.01" value="${s.price!=null?s.price:''}" placeholder="可留空"></div>
+    <div class="fld">
+      <label class="lb">规格 (ml/瓶)</label>
+      <div class="row" style="gap:10px">
+        <div class="step"><button type="button" data-step="fSize" data-d="-25">−</button><input id="fSize" type="number" min="0" step="25" value="${s.sizeMl||''}"><button type="button" data-step="fSize" data-d="25">+</button></div>
+        <div class="quick" data-quick="fSize" data-vals="100,200,375,500,700,750,1000"></div>
+      </div>
+    </div>
+    <div class="fld">
+      <label class="lb">已开封余量 (ml)</label>
+      <div class="sliderrow">
+        <input type="range" id="fOpened" min="0" max="750" step="10" value="${s.openedMl||0}">
+        <span class="slabel" id="fOpenedVal">${s.openedMl||0} ml</span>
+      </div>
+      <div class="quick" data-quick="fOpened" data-vals="0,150,300,500,700"></div>
+    </div>
+    <div class="fld">
+      <label class="lb">整瓶单价</label>
+      <div class="sliderrow">
+        <input type="range" id="fPrice" min="0" max="600" step="5" value="${s.price!=null?s.price:0}">
+        <span class="slabel" id="fPriceVal">${s.price!=null?s.price:0}</span>
+      </div>
+      <div class="quick" data-quick="fPrice" data-vals="50,100,150,200,300,500"></div>
     </div>
     <div class="fld"><label class="lb">备注</label><input class="inp" id="fNote" value="${esc(s.note||'')}" placeholder="品牌 / 批次 / 开封日期"></div>
   `, (body,close)=>{
+    /* ---- 步进器 ---- */
+    body.querySelectorAll('[data-step]').forEach(b=>{
+      b.onclick=()=>{
+        const el=body.querySelector('#'+b.dataset.step);
+        const step = b.dataset.step==='fUnopened' ? 1 : 25;
+        let v = (+el.value||0) + (+b.dataset.d)*step;
+        if(b.dataset.step==='fSize') v = Math.max(0, Math.round(v/25)*25);
+        if(b.dataset.step==='fUnopened') v = Math.max(0, Math.round(v));
+        el.value = v;
+        el.dispatchEvent(new Event('input',{bubbles:true}));
+        el.dispatchEvent(new Event('change',{bubbles:true}));
+        syncSliders();
+      };
+    });
+    /* ---- 快捷值 ---- */
+    body.querySelectorAll('[data-quick]').forEach(q=>{
+      q.innerHTML = q.dataset.vals.split(',').map(v=>`<button type="button" data-v="${v}">${v}</button>`).join('');
+      q.querySelectorAll('button').forEach(b=>{
+        b.onclick=()=>{
+          const target=body.querySelector('#'+q.dataset.quick);
+          target.value = b.dataset.v;
+          target.dispatchEvent(new Event('input',{bubbles:true}));
+          target.dispatchEvent(new Event('change',{bubbles:true}));
+          q.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+          syncSliders();
+        };
+      });
+    });
+    /* ---- 滑块联动 ---- */
+    function syncSliders(){
+      const size=+body.querySelector('#fSize').value||0;
+      const op=body.querySelector('#fOpened');
+      op.max = size > 0 ? size : 750;   // 上限跟随规格；规格未填时给个默认值
+      if(+op.value > +op.max) op.value = op.max;
+      body.querySelector('#fOpenedVal').textContent = op.value+' ml';
+      body.querySelector('#fPriceVal').textContent = body.querySelector('#fPrice').value;
+    }
+    // 记录用户是否手动改过单价 —— 滑块初值是 0（非空），不能用「值为空」判断是否已填
+    let priceDirty=false;
+    ['fSize','fOpened','fPrice'].forEach(id=>{
+      const el=body.querySelector('#'+id);
+      el.addEventListener('input',()=>{ if(id==='fPrice') priceDirty=true; syncSliders(); });
+      el.addEventListener('change',()=>{ if(id==='fPrice') priceDirty=true; syncSliders(); });
+    });
+    syncSliders();
+
     const nameEl = body.querySelector('#fName');
     const catRow = body.querySelector('#fCats');
     const gridBox = body.querySelector('#fGrid');
@@ -1294,7 +1406,7 @@ function stockForm(name){
       const sizeEl = body.querySelector('#fSize');
       const priceEl = body.querySelector('#fPrice');
       if(ref && ref.refSize && (force || !sizeEl.value)) sizeEl.value = ref.refSize;
-      if(ref && ref.refPrice!=null && (force || !priceEl.value)) priceEl.value = ref.refPrice;
+      if(ref && ref.refPrice!=null && (force || !priceDirty)) priceEl.value = ref.refPrice;
       // 预览
       if(prevBox){
         prevBox.classList.add('on');
@@ -1394,7 +1506,13 @@ function stockForm(name){
       const openedMl=Math.max(0,+body.querySelector('#fOpened').value||0);
       const pv=body.querySelector('#fPrice').value;
       db.stock[n]={name:n,sizeMl,price:(pv===''?null:+pv),unopened,openedMl,note:body.querySelector('#fNote').value.trim()};
-      save(); close(); render(); toast(n+' 已入库','ok');
+      save();
+      // 保存后不关弹窗：清空原料名，焦点回到输入框，可连续添加
+      nameEl.value='';
+      const noteEl=body.querySelector('#fNote'); if(noteEl) noteEl.value='';
+      nameEl.focus();
+      render();                 // 只刷新底层页面，弹窗保持打开
+      toast(n+' 已入库，可继续添加下一项','ok');
     };
     const del=body.querySelector('#delStock');
     if(del) del.onclick=()=>{ close(); delStock(name); };
