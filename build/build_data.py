@@ -236,6 +236,12 @@ def main():
     recs_raw = load_recipes()
     ings_raw = load_ingredients()
 
+    # 数据缺失时必须大声报错 —— 之前静默产出 0 条配方，差点把整个项目清空
+    if len(recs_raw) < 100 or len(ings_raw) < 50:
+        print('❌ 上游数据缺失或异常：配方 %d 条 / 原料 %d 种' % (len(recs_raw), len(ings_raw)), file=sys.stderr)
+        print('   请先按 data/README.md 的说明拉取 bar-assistant/data 仓库', file=sys.stderr)
+        sys.exit(1)
+
     selected = {}
     for rid, d in recs_raw.items():
         tags = set(d.get('tags') or [])
@@ -259,6 +265,9 @@ def main():
         ingredients[name] = {
             'cat': src.get('category') or 'Other',
             'catZh': CAT_ZH.get(src.get('category') or 'Other', '其他'),
+            # 一级分类（把 "Spirits > Whiskey > Bourbon" 拍平成 "烈酒"）
+            'catTop': (src.get('category') or 'Other').split('>')[0].strip(),
+            'catTopZh': CAT_ZH.get((src.get('category') or 'Other').split('>')[0].strip(), '其他'),
             'abv': src.get('strength'),
             'desc': shorten(src.get('description'), 80),
             'zh': ZH.get(name, ''),

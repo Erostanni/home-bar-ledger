@@ -324,13 +324,12 @@ console.log('\n【16】原料选择器');
   ok(!t.$('datalist'), '旧版英文 datalist 已移除');
 
   t.setVal(t.$('#fName'), '金');
-  const sug = t.$$('.fsug-item');
-  ok(sug.length >= 2, `中文搜索「金」出 ${sug.length} 条建议`);
-  ok(sug[0].textContent.includes('金酒'), '首条是「金酒」');
-  ok(sug[0].textContent.includes('Gin'), '同时显示英文原名');
-  ok(sug[0].textContent.includes('烈酒'), '显示中文分类');
+  const cells = t.$$('.fcell');
+  ok(cells.length >= 2, `中文搜索「金」出 ${cells.length} 个格子`);
+  ok(cells[0].textContent.includes('金酒'), '首个是「金酒」');
+  ok(cells[0].textContent.includes('Gin'), '同时显示英文原名');
 
-  t.click(sug[0]);
+  t.click(cells[0]);
   ok(t.$('#fName').value === 'Gin', '选中后输入框填入规范名 Gin');
   ok(!!t.$('.fprev.on'), '显示预览区');
   const prev = t.$('.fprev').textContent;
@@ -342,11 +341,55 @@ console.log('\n【16】原料选择器');
 
   // 英文搜索
   t.setVal(t.$('#fName'), 'Campari');
-  ok(t.$$('.fsug-item').some(e => e.textContent.includes('金巴利')), '英文也能搜到（显示中文名）');
+  ok(t.$$('.fcell').some(e => e.textContent.includes('金巴利')), '英文也能搜到（显示中文名）');
 
   // 自定义原料
   t.setVal(t.$('#fName'), '我的自酿糖浆');
-  ok(t.$('.fsug-item.fempty'), '未收录的原料给出提示');
+  ok(t.$('.fempty'), '未收录的原料给出提示');
+}
+
+/* ============ 场景 17：分类 + 网格选择器 ============ */
+console.log('\n【17】分类 + 网格选择器');
+{
+  const t = boot(null);
+  t.tab('cabinet');
+  t.click(t.$('[data-act="addstock"]'));
+  ok(!!t.$('#fCats'), '有分类栏');
+  ok(!!t.$('#fGrid'), '有网格区');
+  ok(!t.$('.fsug'), '旧版下拉建议已移除');
+
+  const cats = t.$$('.fcat').map(e => e.textContent.trim());
+  ok(cats.length >= 10 && cats.length <= 20, `分类数 ${cats.length}（一级分类，不过度碎片化）`);
+  ok(cats[0].startsWith('全部'), '第一个是「全部」');
+  ok(cats.some(c => c.startsWith('烈酒')), '含「烈酒」分类');
+  ok(!cats.some(c => c.includes('›')), '没有多层路径分类');
+  ok(t.$$('.fcat i').length === cats.length - 1, '各分类带数量角标');
+
+  ok(t.$$('.fcell').length === 122, `默认网格 122 格（实得 ${t.$$('.fcell').length}）`);
+  ok(t.$('#fGridHead').textContent.includes('全部'), '网格标题说明当前范围');
+
+  // 切分类
+  t.click(t.$$('.fcat').find(c => c.textContent.includes('烈酒')));
+  const n = t.$$('.fcell').length;
+  ok(n > 0 && n < 122, `切「烈酒」后网格 ${n} 格`);
+  ok(t.$('#fGridHead').textContent.includes('烈酒'), '标题跟着切换');
+  ok(t.$('#fName').value === '', '切分类时清空搜索词');
+
+  // 点格子选中
+  const cell = t.$$('.fcell').find(c => c.textContent.includes('金酒'));
+  ok(!!cell, '网格里有「金酒」');
+  t.click(cell);
+  ok(t.$('#fName').value === 'Gin', '点格子后填入规范名');
+  ok(!!t.$('.fprev.on'), '显示预览');
+  ok(t.$('.fprev').textContent.includes('40% ABV'), '预览含 ABV');
+  ok(t.$('#fSize').value === '750', '自动带出规格');
+  ok(t.$('#fPrice').value === '180', '自动带出参考价');
+
+  // 搜索
+  t.setVal(t.$('#fName'), '伏特加');
+  ok(t.$('#fGridHead').textContent.includes('搜索'), '搜索时标题切换');
+  ok(t.$$('.fcell').length === 1, '搜「伏特加」只剩 1 格');
+  ok(t.$('.fprev').textContent.includes('Vodka'), '输入时预览实时更新');
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);

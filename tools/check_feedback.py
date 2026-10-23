@@ -19,6 +19,7 @@ import urllib.error
 import urllib.request
 
 REPO = "Erostanni/home-bar-ledger"
+OWNER = "Erostanni"   # 只处理仓库所有者本人提的反馈
 WM = "/workspace/issue_watermark.txt"
 API = f"https://api.github.com/repos/{REPO}/issues"
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
@@ -50,9 +51,16 @@ def fetch_issue(n, tries=3):
 
 
 def pending_of(issue):
+    """是否是一条「待处理」的反馈。
+
+    只处理仓库所有者本人（OWNER）提的 Issue —— 别人随手开的单不处理。
+    """
     if not issue:
         return False
     if issue.get("pull_request"):     # PR 不算反馈
+        return False
+    author = (issue.get("user") or {}).get("login")
+    if author != OWNER:
         return False
     if "反馈" not in (issue.get("title") or ""):
         return False
@@ -69,29 +77,6 @@ def priority_of(body):
         if p in body:
             return p
     return "未标注"
-
-
-def renew_interaction_limit():
-    """顺手把「仅协作者可创建 Issue」的 24 小时限制续上。
-
-    这个限制会过期，过期后任何人都能提 Issue。
-    既然每次查反馈都要调一次 GitHub API，就顺便续期 —— 节奏正好吻合。
-    """
-    import urllib.request
-    req = urllib.request.Request(
-        f"{API}/../interaction-limits".replace("/issues/../", "/"),
-        data=json.dumps({"limit": "collaborators_only"}).encode(),
-        headers={**HEADERS, "Content-Type": "application/json"},
-        method="PUT",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            d = json.loads(r.read().decode())
-            print(f"🔒 Issue 互动限制已续期：{d.get('limit')}（到期 {d.get('expires_at')}）")
-            return True
-    except Exception as e:
-        print(f"⚠️  互动限制续期失败：{e}（不影响查反馈）", file=sys.stderr)
-        return False
 
 
 def main():
@@ -119,8 +104,6 @@ def main():
 
     with open(WM, "w") as f:
         f.write(str(highest))
-
-    renew_interaction_limit()
 
     if not found:
         print("✅ 没有待处理的反馈")
