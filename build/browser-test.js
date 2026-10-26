@@ -113,6 +113,40 @@ const OUT = path.join(ROOT, 'preview');
     ? '  ❌ 发现残留:\n    ' + junkHits.join('\n    ')
     : '  ✅ 8 个界面均无 undefined / NaN 残留');
 
+  // 7. 移动端体检：横向溢出 + 触摸目标过小
+  console.log('\n[体检] 移动端布局（375px, 触摸模式）');
+  const phone = await browser.newPage({
+    viewport: { width: 375, height: 812 },
+    hasTouch: true, isMobile: true,
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+  });
+  await phone.addInitScript(() => {
+    localStorage.setItem('hbl.v1', JSON.stringify({
+      stock: { Gin: { name: 'Gin', sizeMl: 750, price: 180, unopened: 0, openedMl: 450, note: '' } },
+      ledger: [{ id: 'm1', ts: Date.now() - 3600e3, name: '尼格罗尼', servings: 2, totalMl: 180, cost: 9.8, seq: 1, lines: [{ n: 'Gin', ml: 60 }] }],
+      settings: { barName: '巷口小吧', owner: '阿伦' }
+    }));
+  });
+  await phone.goto(URL);
+  await phone.waitForTimeout(900);
+  const mob = await phone.evaluate(() => {
+    const out = [];
+    for (const v of ['cabinet', 'ledger', 'mix', 'statement']) {
+      document.querySelector(`#tabs button[data-v="${v}"]`).click();
+      const app = document.getElementById('app');
+      const over = app.scrollWidth - app.clientWidth;
+      if (over > 2) out.push(`${v} 横向溢出 ${over}px`);
+      const small = [...app.querySelectorAll('button')]
+        .filter(e => e.offsetParent !== null && e.getBoundingClientRect().height > 0)
+        .map(e => ({ t: (e.textContent || e.title || '').trim().slice(0, 8), h: Math.round(e.getBoundingClientRect().height) }))
+        .filter(e => e.h < 28);
+      if (small.length) out.push(`${v} 点击目标过小: ${small.slice(0, 3).map(s => `${s.t}(${s.h}px)`).join(', ')}`);
+    }
+    return out;
+  });
+  console.log(mob.length ? '  ⚠️  ' + mob.join('\n  ⚠️  ') : '  ✅ 无横向溢出，触摸目标均 ≥28px');
+  await phone.close();
+
   console.log('\nJS 错误:', errors.length ? errors.join('\n  ') : '无');
   await browser.close();
   process.exit(errors.length || junkHits.length ? 1 : 0);

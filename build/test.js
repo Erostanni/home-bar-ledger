@@ -588,5 +588,38 @@ console.log('\n【21】添加原料交互');
   ok(!!t.db().stock['Vodka'], '可连续添加第二种原料');
 }
 
+/* ============ 场景 12：旧版备份迁移 ============ */
+console.log('\n【12】旧版备份迁移（缺字段不漏 undefined）');
+{
+  // 模拟老版本导出的备份：stock 缺大部分字段、ledger 缺 seq/servings/totalMl/cost
+  const t = boot({
+    stock: { 'Gin': { name: 'Gin' } },
+    ledger: [
+      { id: 'old1', ts: 1785000000000, name: '旧记录', lines: [{ n: 'Gin', ml: 45 }] },
+      { id: 'old2', ts: 1785000000000, name: '更旧的', lines: [] }
+    ],
+    settings: { barName: '老吧台' }
+  });
+  const m = t.w.eval('migrate');
+  const fixed = m({ stock: { Gin: { name: 'Gin' } }, ledger: [{ id: 'x', name: 'n', lines: [{ n: 'Gin', ml: 45 }] }] });
+  ok(fixed.ledger[0].seq === 1, '缺失的 seq 自动补号');
+  ok(fixed.ledger[0].servings === 1, '缺失的 servings 补 1');
+  ok(fixed.ledger[0].totalMl === 45, '缺失的 totalMl 由 lines 累加得出');
+  ok(fixed.ledger[0].cost === 0, '缺失的 cost 补 0');
+  ok(fixed.stock.Gin.sizeMl === 0 && fixed.stock.Gin.unopened === 0, 'stock 缺失字段补默认值');
+  ok(m({ stock: [{ name: 'Vodka', sizeMl: 700 }], ledger: [] }).stock.Vodka.sizeMl === 700, '数组形式 stock 迁成对象');
+
+  // 实际渲染：台账页不应出现 undefined
+  t.tab('ledger');
+  const numTxt = t.$('.led .num') ? t.$('.led .num').textContent : '';
+  ok(!/undefined/.test(numTxt), `台账序号正常（${numTxt}）`);
+  const dtTxt = t.$('.led .dt') ? t.$('.led .dt').textContent : '';
+  ok(!/undefined/.test(dtTxt), `台账副信息正常（${dtTxt}）`);
+  t.tab('cabinet');
+  const cardTxt = t.$('.stockcard') ? t.$('.stockcard').textContent : '';
+  ok(!/undefined/.test(cardTxt), '酒柜卡片无 undefined 残留');
+  ok(t.errors.length === 0, '迁移过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
+}
+
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
 process.exit(fail ? 1 : 0);
