@@ -538,6 +538,9 @@ html.no-motion *{animation:none !important;transition:none !important}
   #btnSettings{order:2}
   .tabs{order:3;margin-left:0;width:100%;overflow-x:auto;justify-content:flex-start}
   .tabs button{padding:6px 12px;font-size:12.5px;flex:1 0 auto}
+  /* 窄屏页头：标题与操作区纵向堆叠，避免标题被挤成窄柱 */
+  .pagehead{flex-direction:column;align-items:stretch;gap:var(--sp-3)}
+  .pagehead .phright{flex-wrap:wrap;padding-bottom:0}
   .led{grid-template-columns:auto 1fr;row-gap:6px}
   .led .amt{grid-column:2;text-align:left}
   .stats{grid-template-columns:1fr 1fr;gap:9px}
