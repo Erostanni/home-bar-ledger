@@ -1223,7 +1223,7 @@ function viewStatement(){
   const m=ui.stmtMonth;
   const D=statementData(m);
   const ents=D.ents, byIng=D.byIng, ingRows=D.ingRows, recRows=D.recRows;
-  const cups=D.cups, vol=D.vol, cost=D.cost, unpriced=D.unpriced, ingCost=D.ingCost, sv=D.sv, prevCups=D.prevCups, receiptNo=D.reiptNo;
+  const cups=D.cups, vol=D.vol, cost=D.cost, unpriced=D.unpriced, ingCost=D.ingCost, sv=D.sv, prevCups=D.prevCups, receiptNo=D.receiptNo;
   const months=[...new Set(db.ledger.map(e=>eMonth(e)))].sort().reverse();
   if(!months.includes(m)) months.unshift(m);
 

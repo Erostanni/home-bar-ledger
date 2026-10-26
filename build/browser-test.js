@@ -68,7 +68,52 @@ const OUT = path.join(ROOT, 'preview');
   const ledCount = await page.locator('.led').count();
   console.log('  刷新后台账仍在:', ledCount, '条');
 
+  // 6. 渲染残留扫描：防止 undefined / NaN 逃逸到界面
+  //    （历史教训：把 D.receiptNo 拼成 D.receptNo，小票编号静默显示 undefined）
+  console.log('\n[扫描] 渲染残留 undefined / NaN');
+  const JUNK = ['undefined', 'NaN', '[object Object]', 'Infinity', 'null'];
+  const junkHits = [];
+  async function scan(name, sel) {
+    const txt = await page.locator(sel).innerText().catch(() => '');
+    const hits = JUNK.filter(j => txt.includes(j));
+    if (hits.length) junkHits.push(`${name} → ${hits.join(', ')}`);
+    return txt;
+  }
+  for (const v of ['ledger', 'mix', 'cabinet', 'statement']) {
+    await page.click(`#tabs button[data-v="${v}"]`);
+    await page.waitForTimeout(400);
+    await scan(`页面 ${v}`, '#app');
+  }
+  // 小票本体
+  await page.click('#tabs button[data-v="statement"]');
+  await page.waitForTimeout(300);
+  await scan('小票', '.receipt');
+  // 设置弹窗（4 个 tab）
+  await page.click('#btnSettings');
+  await page.waitForTimeout(500);
+  await scan('设置弹窗', '.modal');
+  await page.click('#mClose');
+  await page.waitForTimeout(300);
+  // 原料表单弹窗
+  await page.click('#tabs button[data-v="cabinet"]');
+  await page.waitForTimeout(300);
+  await page.click('[data-act="addstock"]');
+  await page.waitForTimeout(400);
+  await scan('原料弹窗', '.modal');
+  await page.click('#mClose');
+  await page.waitForTimeout(300);
+  // 配方详情弹窗
+  await page.click('#tabs button[data-v="mix"]');
+  await page.waitForTimeout(400);
+  await page.locator('.recitem').first().click();
+  await page.waitForTimeout(500);
+  await scan('配方弹窗', '.modal');
+
+  console.log(junkHits.length
+    ? '  ❌ 发现残留:\n    ' + junkHits.join('\n    ')
+    : '  ✅ 8 个界面均无 undefined / NaN 残留');
+
   console.log('\nJS 错误:', errors.length ? errors.join('\n  ') : '无');
   await browser.close();
-  process.exit(errors.length ? 1 : 0);
+  process.exit(errors.length || junkHits.length ? 1 : 0);
 })();
