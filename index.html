@@ -814,7 +814,7 @@ function fmtDate(ts){
     +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
 function money(n){ return (n==null?'—':db.settings.currency + n.toFixed(2)); }
-function money0(n){ return (n==null?'—':db.settings.currency + Math.round(n)); }
+function money0(n){ return (n==null?'—':db.settings.currency + Math.round(n).toLocaleString('en-US')); }
 function num(n){ return (Math.round(n*10)/10).toLocaleString('en-US'); }
 function zhOf(n){ return (ING_META[n]&&ING_META[n].zh)||''; }
 /** 中文名 → 英文规范名（用于库存键归一，避免同一原料存成两个 key） */
@@ -990,7 +990,7 @@ function viewCabinet(){
     <div class="metric"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
     <div class="metric"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
     <div class="metric"><div class="k">已开封</div><div class="v">${opened}<small> 种</small></div></div>
-    <div class="metric accent"><div class="k">库存估值</div><div class="v">${sv.known?money0(sv.value):'部分未标价'}</div></div>
+    <div class="metric accent"><div class="k">库存估值</div><div class="v">约 ${money0(sv.value)}${sv.known?'':'（部分未标价）'}</div></div>
     <div class="metric"><div class="k">配方库</div><div class="v">${RECIPES.length}<small> 款</small></div></div>
   </div>
 
