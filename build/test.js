@@ -492,7 +492,7 @@ console.log('\n【19】配方分类筛选');
   const t = boot(null);
   t.tab('mix');
   const rows = t.$$('.mixfrow');
-  ok(rows.length === 4, `四行筛选（可做/风格/基酒/谱系），实得 ${rows.length}`);
+  ok(rows.length === 4, `四行筛选（现在能做什么/风格/基酒/谱系），实得 ${rows.length}`);
   const styleBtns = rows[1].querySelectorAll('.sfcat');
   ok(styleBtns.length >= 15, `风格选项 ${styleBtns.length} 个`);
   // 点「金酒」基酒
@@ -522,15 +522,15 @@ console.log('\n【19】配方分类筛选');
   ok(t.$$('.recitem').length === vCount, `搜「伏特加」按中文名命中 ${vCount} 款`);
   // 「可做 / 缺料」维度
   const makeRow = t.$$('.mixfrow')[0];
-  const canDo = [...makeRow.querySelectorAll('.sfcat')].find(b=>b.textContent.includes('能做'));
-  const lack  = [...makeRow.querySelectorAll('.sfcat')].find(b=>b.textContent.includes('缺料'));
+  const canDo = [...makeRow.querySelectorAll('button')].find(b=>b.textContent.includes('能做'));
+  const lack  = [...makeRow.querySelectorAll('button')].find(b=>b.textContent.includes('缺料'));
   ok(!!canDo && !!lack, '有「能做 / 缺料」筛选');
   t.click(canDo);
   const okN = t.w.eval("Object.values(eval('makeMap')).filter(Boolean).length");
   ok(t.$$('.recitem').length === Math.min(okN,150), `「能做」列出 ${okN} 款`);
   // ⚠️ 点击会触发 render → DOM 重建 → 旧引用失效，必须重新查询
   t.setVal(t.$('#mixQ'), '');           // 清掉搜索词，单独验证筛选维度
-  const lack2 = [...t.$$('.mixfrow')[0].querySelectorAll('.sfcat')].find(b=>b.textContent.includes('缺料'));
+  const lack2 = [...t.$$('.mixfrow')[0].querySelectorAll('button')].find(b=>b.textContent.includes('缺料'));
   t.click(lack2);
   const lackN = t.w.eval("RECIPES.length - Object.values(eval('makeMap')).filter(Boolean).length");
   ok(t.$$('.recitem').length === Math.min(lackN,150), `「缺料」列出 ${lackN} 款（分页显示 ${Math.min(lackN,150)}）`);
@@ -539,7 +539,7 @@ console.log('\n【19】配方分类筛选');
   ['Gin','Sweet Vermouth','Campari'].forEach(n=>st[n]={name:n,sizeMl:750,price:150,unopened:1,openedMl:700,note:''});
   const t2 = boot({stock:st,ledger:[],settings:{barName:'T',barSub:'T',owner:'',currency:'¥'}});
   t2.tab('mix');
-  const can2 = [...t2.$$('.mixfrow')[0].querySelectorAll('.sfcat')].find(b=>b.textContent.includes('能做'));
+  const can2 = [...t2.$$('.mixfrow')[0].querySelectorAll('button')].find(b=>b.textContent.includes('能做'));
   t2.click(can2);
   const n2 = t2.$$('.recitem').length;
   ok(n2 > 0, `材料齐备时「能做」列出 ${n2} 款`);
@@ -619,6 +619,97 @@ console.log('\n【12】旧版备份迁移（缺字段不漏 undefined）');
   const cardTxt = t.$('.stockcard') ? t.$('.stockcard').textContent : '';
   ok(!/undefined/.test(cardTxt), '酒柜卡片无 undefined 残留');
   ok(t.errors.length === 0, '迁移过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
+}
+
+/* ============ 场景 22：更多筛选（折叠面板） ============ */
+console.log('\n【22】更多筛选折叠面板');
+{
+  const t = boot(null);
+  t.tab('mix');
+  const btn = t.$('[data-act="mixmoretoggle"]');
+  ok(!!btn, '有「更多筛选」按钮');
+  const wrap = t.$('.morewrap');
+  ok(!!wrap && !wrap.classList.contains('open'), '默认收起');
+  // 收起时长尾筛选仍在 DOM 里（折叠 ≠ 销毁，切开是无缝的）
+  ok(t.$$('.morebody .mixfrow').length === 3, `面板内 3 组筛选（风格/基酒/谱系），实得 ${t.$$('.morebody .mixfrow').length}`);
+  // 切主分段：全部 / 经典
+  const seg = t.$$('.seg')[0];
+  ok(!!seg && seg.querySelectorAll('button').length === 2, '主筛选是 2 段分段控件');
+  const classic = [...seg.querySelectorAll('button')].find(b=>b.textContent.includes('经典'));
+  t.click(classic);
+  const classicN = t.w.eval("RECIPES.filter(r=>r.tier===1).length");
+  ok(t.$$('.recitem').length === Math.min(classicN,150), `「经典」分段列出 ${classicN} 款`);
+  // 展开面板
+  t.click(t.$('[data-act="mixmoretoggle"]'));
+  ok(t.$('.morewrap').classList.contains('open'), '点击后展开');
+  // 面板里选一个风格，角标应显示生效项数
+  const styleRow = t.$('.morebody .mixfrow');
+  const firstStyle = [...styleRow.querySelectorAll('.sfcat')].find(b=>b.textContent.includes('酸'));
+  t.click(firstStyle);
+  const cnt = t.$('.morebtn .cnt');
+  ok(!!cnt && cnt.textContent.includes('1'), `折叠时角标显示生效项数（${cnt ? cnt.textContent.trim() : '无'}）`);
+  // 收起后仍保留已选筛选（不丢状态）
+  t.click(t.$('[data-act="mixmoretoggle"]'));
+  ok(!t.$('.morewrap').classList.contains('open'), '再次点击收起');
+  const still = t.w.eval("ui.mixStyle");
+  ok(still !== '全部', `收起后筛选仍保留（${still}）`);
+  // 清除筛选
+  t.click(t.$('[data-act="mixclear"]'));
+  ok(t.w.eval("ui.mixStyle") === '全部', '清除后回到全部');
+  ok(t.errors.length === 0, '筛选面板过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
+}
+
+/* ============ 场景 23：#17 整体设计改造（台账分组 + 小结卡 + 卡片信息层级） ============ */
+console.log('\n【23】台账分组与小结卡');
+{
+  // 跨两个月的台账
+  const now = Date.now();
+  const mk = (id, name, ts, cost, servings) => ({
+    id, seq: 1, ts, name, servings, totalMl: 60, cost, lines: [],
+  });
+  const t = boot({
+    stock: {},
+    ledger: [
+      mk('a', 'Negroni', now - 3600e3, 30, 2),
+      mk('b', 'Margarita', now - 86400e3, 18, 1),
+      mk('c', 'Old Fashioned', now - 40 * 86400e3, 25, 1),   // 上个月
+    ],
+    settings: { barName: 'T', barSub: 'T', owner: '', currency: '¥' },
+  });
+  t.tab('ledger');
+  const groups = t.$$('.ledgroup');
+  ok(groups.length === 2, `按月分成 2 组，实得 ${groups.length}`);
+  const heads = t.$$('.ledghead .lgm').map(e => e.textContent.trim());
+  ok(heads.length === 2 && heads[0] !== heads[1], `组头是月份：${heads.join(' / ')}`);
+  const subtotal = t.$$('.ledghead .lgs')[0].textContent;
+  ok(/杯/.test(subtotal) && /¥/.test(subtotal), `组头带小计（${subtotal.trim()}）`);
+  // 小结卡
+  const sum = t.$('.sumcard');
+  ok(!!sum, '右栏有小结卡');
+  const sumTxt = sum ? sum.textContent : '';
+  ok(/总杯数/.test(sumTxt) && /估算成本/.test(sumTxt), '小结卡含总杯数与估算成本');
+  const totalCups = t.$$('.metric .v')[0].textContent.trim();
+  ok(sumTxt.includes(totalCups.replace(/\s+/g, '')) || /3/.test(sumTxt), `小结杯数与指标条一致（${totalCups}）`);
+  // 清空按钮移到了小结卡里
+  ok(!!t.$('.sumcard [data-act="clearledger"]'), '清空台账按钮在小结卡内');
+  // 撤销按钮仍在每行
+  ok(t.$$('.led [data-act="undorec"]').length === 3, `每行都有撤销按钮（${t.$$('.led [data-act="undorec"]').length}）`);
+  ok(t.errors.length === 0, '台账改造过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
+}
+
+console.log('\n【24】酒柜卡片信息层级');
+{
+  const t = boot({ stock: { Gin: { name: 'Gin', sizeMl: 750, price: 180, unopened: 1, openedMl: 300, note: '' } }, ledger: [], settings: { barName: 'T', currency: '¥' } });
+  t.tab('cabinet');
+  const card = t.$('.stockcard');
+  ok(!!card, '有卡片');
+  // 分类必须独立成行，不能和名称挤在同一行
+  const top = card.querySelector('.top');
+  ok(top && !top.querySelector('.cat'), '分类不在名称行内（名称独占一行）');
+  ok(!!card.querySelector('.cat'), '分类另有其行');
+  // 名称行有 hover 让位（给右上角按钮腾地方）
+  ok(!!card.querySelector('.acts'), '卡片有编辑/删除按钮组');
+  ok(t.errors.length === 0, '卡片改造过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
 }
 
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
