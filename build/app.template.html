@@ -22,7 +22,6 @@
   --tabs-bg:rgba(0,0,0,.28);
   --tabs-hover:rgba(255,255,255,.04);
   --inset:rgba(255,255,255,.035);
-  --hairline:rgba(255,255,255,.075);
   --mask:rgba(8,6,4,.72);
   /* 其它 */
   --r:10px; --mono:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace;
@@ -53,7 +52,6 @@ html[data-theme="light"]{
   --tabs-bg:rgba(120,100,70,.10);
   --tabs-hover:rgba(120,100,70,.08);
   --inset:rgba(120,100,70,.06);
-  --hairline:rgba(120,100,70,.16);
   --mask:rgba(60,48,30,.42);
   --sh:0 8px 22px rgba(80,60,30,.10);
 }
@@ -152,10 +150,7 @@ main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20p
 /* ---------- 通用块 ---------- */
 .card{background:linear-gradient(180deg,var(--panel),var(--panel3));border:1px solid var(--line);
   border-radius:13px;padding:17px 19px;position:relative;
-  box-shadow:0 1px 0 var(--inset) inset, 0 1px 2px rgba(0,0,0,.12), var(--sh)}
-/* 顶部发丝高光：让面板有一层"被光掠过"的实体感，而不是纯色块 */
-.card::after{content:"";position:absolute;left:16px;right:16px;top:0;height:1px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--hairline) 22%,var(--hairline) 78%,transparent)}
+  box-shadow:0 1px 0 var(--inset) inset, var(--sh)}
 .card h3{font-family:var(--serif);font-size:14px;font-weight:600;letter-spacing:.3px;margin:0 0 3px}
 .card .sub{color:var(--mu2);font-size:11.5px;margin-bottom:14px;letter-spacing:.2px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -208,44 +203,16 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .sfcat{padding:3px 10px;border-radius:20px;border:1px solid var(--line);background:var(--panel3);
   color:var(--mu);font-size:11.5px;cursor:pointer;transition:.14s var(--ease);user-select:none;line-height:1.5}
 .sfcat:hover{border-color:var(--gold-d);color:var(--tx)}
-.sfcat.on{background:color-mix(in srgb,var(--gold) 15%,var(--panel2));
-  color:var(--gold-l);border-color:color-mix(in srgb,var(--gold) 42%,var(--line));font-weight:600;
-  box-shadow:0 1px 0 var(--inset) inset}
+.sfcat.on{background:var(--gold);color:var(--gold-ink);border-color:var(--gold);font-weight:600;
+  box-shadow:0 0 0 2px rgba(217,164,65,.20)}
 .sfcat i{font-style:normal;opacity:.6;margin-left:3px;font-size:10.5px}
 .sfcat.on i{opacity:.8}
-
 .stockfilter select{padding:5px 9px;background:var(--panel3);border:1px solid var(--line);border-radius:7px;font-size:12px}
 .stockfilter .sfcount{font-size:11.5px;color:var(--mu2);margin-left:auto}
-/* ---------- 分段控件：比一排圆角 chip 更有仪表感 ---------- */
-.seg{display:inline-flex;background:var(--panel3);border:1px solid var(--line);border-radius:9px;
-  padding:3px;gap:2px;box-shadow:0 1px 0 var(--inset) inset}
-.seg button{padding:4px 13px;border-radius:6px;border:0;background:none;color:var(--mu);font-size:12px;
-  cursor:pointer;transition:.16s var(--ease);white-space:nowrap;line-height:1.5}
-.seg button:hover{color:var(--tx)}
-.seg button.on{background:linear-gradient(180deg,var(--gold-l),var(--gold));color:var(--gold-ink);
-  font-weight:600;box-shadow:0 1px 6px rgba(217,164,65,.30)}
-.seg button i{font-style:normal;opacity:.6;margin-left:4px;font-size:10.5px;font-variant-numeric:tabular-nums}
-.seg button.on i{opacity:.75}
-
-/* ---------- 折叠面板：把长尾筛选收起来，侧栏不再是一片标签云 ---------- */
-.morewrap{margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
-.morebtn{width:100%;display:flex;align-items:center;gap:8px;padding:4px 2px;background:none;border:0;
-  color:var(--tx);font-size:12px;cursor:pointer;text-align:left;transition:.16s var(--ease)}
-.morebtn:hover .lbl{color:var(--tx)}
-.morebtn .lbl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--mu2);font-weight:500}
-.morebtn .morebtn-r{margin-left:auto;display:inline-flex;align-items:center;gap:8px}
-.morebtn .cnt{font-size:10.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
-.morebtn .cnt b{color:var(--gold);font-weight:600}
-.morebtn .caret{color:var(--mu2);font-size:10px;transition:transform .22s var(--ease)}
-.morewrap.open .morebtn .caret{transform:rotate(180deg)}
-.morebody{display:none;padding-top:4px}
-.morewrap.open .morebody{display:block}
 /* 指标条：一条连贯的横条，比五张独立卡片更紧凑、更有节奏 */
 .metrics{display:flex;flex-wrap:wrap;background:linear-gradient(180deg,var(--panel),var(--panel3));
-  border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:20px;position:relative;
-  box-shadow:0 1px 0 var(--inset) inset, 0 1px 2px rgba(0,0,0,.12), var(--sh)}
-.metrics::after{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--hairline) 22%,var(--hairline) 78%,transparent)}
+  border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:20px;
+  box-shadow:0 1px 0 var(--inset) inset, var(--sh)}
 .metric{flex:1 1 130px;padding:14px 18px 13px;position:relative;min-width:0}
 .metric + .metric::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:1px;background:var(--line)}
 .metric .k{font-size:9px;color:var(--mu2);letter-spacing:1.8px;text-transform:uppercase;
@@ -261,11 +228,6 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stat .v small{font-size:12px;color:var(--mu);font-weight:400}
 
 /* ---------- 酒柜 ---------- */
-.recrecs{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 8px;
-  scrollbar-width:thin;scroll-snap-type:x proximity}
-.recrecs::-webkit-scrollbar{height:6px}
-.recrecs::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
-.recrecs .sfcat{flex:0 0 auto;scroll-snap-align:start}
 .stocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:9px;
   max-height:calc(100vh - 330px);min-height:180px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start}
 .stocklist::-webkit-scrollbar{width:7px}
@@ -273,23 +235,18 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stocklist::-webkit-scrollbar-track{background:transparent}
 .stockcard{background:linear-gradient(180deg,var(--panel),var(--panel3));border:1px solid var(--line);
   border-radius:11px;padding:11px 13px 11px 16px;position:relative;transition:.18s var(--ease);
-  display:flex;flex-direction:column;min-height:112px;min-width:0;overflow:hidden;
-  box-shadow:0 1px 0 var(--inset) inset, 0 1px 2px rgba(0,0,0,.10)}
-.stockcard::after{content:"";position:absolute;left:14px;right:14px;top:0;height:1px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,var(--hairline) 24%,var(--hairline) 76%,transparent)}
+  display:flex;flex-direction:column;min-height:112px;min-width:0;overflow:hidden}
 .stockcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2);
   transition:.18s var(--ease)}
-.stockcard:hover{border-color:color-mix(in srgb,var(--gold) 34%,var(--line2));transform:translateY(-1px);
-  box-shadow:0 10px 26px rgba(0,0,0,.34), 0 0 0 1px color-mix(in srgb,var(--gold) 12%,transparent)}
+.stockcard:hover{border-color:var(--line2);transform:translateY(-1px);
+  box-shadow:0 8px 22px rgba(0,0,0,.3)}
 .stockcard:hover::before{background:var(--gold)}
 .stockcard .top{display:flex;align-items:baseline;gap:10px;flex:0 0 auto;
   transition:padding-right .18s var(--ease)}
-.stockcard .nm{font-weight:600;font-size:13px;padding-right:0;min-width:0;flex:1 1 auto;
+.stockcard .nm{font-weight:600;font-size:13px;padding-right:0;min-width:0;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-/* 分类另起一行：名称独占整行宽度，才不会被分类标签挤成「安高天娜苦精 · Angos…」 */
-.stockcard .cat{font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 0;flex:0 0 auto;
-  align-self:flex-start;max-width:100%}
+.stockcard .cat{margin-left:auto;font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
 /* hover 时编辑/删除按钮才出现，整行一起给它们让位（Issue #24）：
    只让标题让位的话，右对齐的分类标签会被压在按钮底下 */
 .stockcard:hover .top{padding-right:52px}
@@ -310,9 +267,8 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 调制 ---------- */
 .mixwrap{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
-.mixfrow{margin-bottom:9px}
-.mixflabel{display:block;font-size:10px;color:var(--mu2);letter-spacing:1.4px;text-transform:uppercase;
-  margin-bottom:5px;font-weight:500}
+.mixfrow{display:flex;gap:8px;align-items:flex-start;margin-bottom:5px}
+.mixflabel{flex:0 0 28px;font-size:10.5px;color:var(--mu2);letter-spacing:.5px;padding-top:4px}
 .mixfrow .sfcat{font-size:11px;padding:2px 9px}
 .searchbar{position:relative;margin-bottom:11px}
 .searchbar .inp{padding-left:32px}
@@ -353,31 +309,9 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 
 /* ---------- 台账 ---------- */
 .ledgerlist{display:flex;flex-direction:column;gap:2px}
-.ledgerwrap{display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:20px;align-items:start}
-.ledgroup{margin-bottom:22px}
-.ledghead{display:flex;align-items:baseline;gap:12px;padding:0 14px 8px 18px;
-  border-bottom:1px solid var(--line);margin-bottom:2px}
-.ledghead .lgm{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--tx);letter-spacing:.3px}
-.ledghead .lgs{margin-left:auto;font-size:11.5px;color:var(--mu2);font-variant-numeric:tabular-nums}
-.ledghead .lgs b{color:var(--tx);font-weight:600}
 .led{position:relative;background:transparent;border:1px solid transparent;border-radius:var(--r-md);
-  padding:12px 14px 12px 18px;display:grid;grid-template-columns:46px minmax(0,1fr) 116px 86px 28px;
-  gap:14px;align-items:center;transition:.16s var(--ease)}
-.ledgroup .led + .led{border-top-color:var(--line)}
-.led .when{font-family:var(--mono);font-size:11px;color:var(--mu2);text-align:right;
-  letter-spacing:.2px;white-space:nowrap}
-/* 小结卡：右栏 sticky，把台账页右半边的空白收住 */
-.sumcard{position:sticky;top:74px;background:linear-gradient(180deg,var(--panel),var(--panel3));
-  border:1px solid var(--line);border-radius:13px;padding:16px 17px;
-  box-shadow:0 1px 0 var(--inset) inset, 0 1px 2px rgba(0,0,0,.12), var(--sh)}
-.sumcard h3{font-family:var(--serif);font-size:14px;font-weight:600;letter-spacing:.3px;margin:0 0 2px}
-.sumcard .sub{color:var(--mu2);font-size:11.5px;margin-bottom:12px;letter-spacing:.2px}
-.sumrow{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
-.sumrow:last-of-type{border-bottom:0}
-.sumrow .sk{font-size:11px;color:var(--mu2);letter-spacing:.6px}
-.sumrow .sv{margin-left:auto;font-family:var(--serif);font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
-.sumrow .sv small{font-family:var(--sans);font-size:11px;color:var(--mu);margin-left:2px}
-.sumrow.gold .sv{color:var(--gold)}
+  padding:11px 14px 11px 18px;display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;
+  transition:.16s var(--ease)}
 .led::before{content:"";position:absolute;left:6px;top:14px;bottom:14px;width:2px;border-radius:2px;
   background:var(--line2);transition:.16s var(--ease)}
 .led:hover{background:var(--panel);border-color:var(--line)}
@@ -387,7 +321,8 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .led:hover .num{color:var(--gold)}
 .led .nm{font-weight:600;font-size:14.5px;font-family:var(--serif);letter-spacing:.2px;color:var(--tx)}
 .led .dt{font-family:var(--mono);font-size:11px;color:var(--mu2);margin-top:2px;letter-spacing:.2px}
-.led .amt{font-family:var(--mono);font-size:12.5px;color:var(--mu);text-align:right;white-space:nowrap}
+.led .amt{font-family:var(--mono);font-size:12.5px;color:var(--mu);text-align:right;white-space:nowrap;
+  min-width:96px}
 .led .amt b{color:var(--tx);font-weight:600;font-size:14px}
 .led .amt em{font-style:normal;font-size:10.5px;color:var(--mu2);margin-left:4px}
 .led .iconmini{opacity:0;transition:.16s var(--ease)}
@@ -406,12 +341,6 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
   /* 触摸端按钮常显且更大（32px），名称行必须常驻留位，否则永久被压住（Issue #24） */
   .stockcard .top{padding-right:64px}
   .recitem{padding:12px 13px;min-height:44px}
-  .morebtn{min-height:32px}
-  .seg button{min-height:32px}
-  .ledgerwrap{grid-template-columns:minmax(0,1fr)}
-  .sumcard{position:static}
-  .led{grid-template-columns:40px minmax(0,1fr) 76px 26px;gap:10px}
-  .led .when{display:none}
 }
 .filterbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .filterbar select{padding:7px 10px;background:var(--panel3);border:1px solid var(--line);border-radius:8px;font-size:13px}
@@ -805,7 +734,6 @@ let ui = {
   stockCat: '全部',
   stockSort: 'name',
   mixTier: 'all',
-  mixMore: false,
   mixStyle: '全部',
   mixBase: '全部',
   mixLineage: '全部',
@@ -1053,8 +981,8 @@ function viewCabinet(){
       </div>
       <div class="top">
         <div class="nm">${zhOf(n)?zhOf(n)+" · ":""}${esc(n)}</div>
+        <div class="cat">${esc(meta.catZh||meta.cat||'其他')}${meta.abv?` · ${meta.abv}% ABV`:''}</div>
       </div>
-      <div class="cat">${esc(meta.catZh||meta.cat||'其他')}${meta.abv?` · ${meta.abv}% ABV`:''}</div>
       <div class="bar" title="开封瓶内剩余比例"><i class="${pct>85?'low':''}" style="width:${pct}%"></i></div>
       <div class="amt"><span>${tot>0?(tot.toFixed(0)+' ml'):'空'}</span><span>${s.price!=null?money(s.price)+' / 瓶':'未标价'}</span></div>
       <div class="amt"><span>${s.unopened||0} 瓶${s.openedMl>0?` · 开封 ${s.openedMl.toFixed(0)}ml`:''}</span><span>${s.sizeMl?s.sizeMl+'ml/瓶':'规格未填'}</span></div>
@@ -1112,9 +1040,9 @@ function renderCanMake(){
   if(!box) return;
   const ok=RECIPES.map(r=>({r, p:planFor(r,1)})).filter(x=>x.p.missing.length===0);
   if(!ok.length){ box.innerHTML='<div class="empty">当前库存还撑不起任何一款配方 —— 先去添加原料吧</div>'; return; }
-  box.innerHTML='<div class="recrecs">'+ok.slice(0,40).map(x=>
-    `<button class="pill gold" data-act="gorecipe" data-id="${x.r.id}" style="cursor:pointer;flex:0 0 auto">${esc(x.r.name)}</button>`).join('')+
-    (ok.length>40?`<span class="pill" style="flex:0 0 auto">+${ok.length-40} 款</span>`:'')+'</div>';
+  box.innerHTML='<div class="row wrap" style="gap:7px">'+ok.slice(0,40).map(x=>
+    `<button class="pill gold" data-act="gorecipe" data-id="${x.r.id}" style="cursor:pointer">${esc(x.r.name)}</button>`).join('')+
+    (ok.length>40?`<span class="pill">+${ok.length-40} 款</span>`:'')+'</div>';
 }
 
 /* ============================ 视图：调制 ============================ */
@@ -1168,11 +1096,6 @@ function mixFilterRow(label, key, facets){
     </div></div>`;
 }
 
-/* 除主分段外，长尾筛选的生效项数（用于「更多筛选」按钮上的角标） */
-function mixMoreCount(){
-  return ['mixStyle','mixBase','mixLineage'].filter(k=>ui[k]&&ui[k]!=='全部').length;
-}
-
 function viewMix(){
   const q=ui.mixQ.trim().toLowerCase();
   let list=RECIPES.filter(r=>{
@@ -1191,33 +1114,17 @@ function viewMix(){
   <div class="mixwrap">
     <div class="card" style="position:sticky;top:74px">
       <div class="searchbar"><input class="inp" id="mixQ" placeholder="搜酒名 / 原料 / 杯型…" value="${esc(ui.mixQ)}"></div>
-      <div class="seg" style="width:100%;margin-bottom:11px">
-        <button class="${ui.mixTier==='all'?'on':''}" data-act="mixtier" data-t="all">全部 <i>${RECIPES.length}</i></button>
-        <button class="${ui.mixTier==='classic'?'on':''}" data-act="mixtier" data-t="classic">经典 <i>${RECIPES.filter(r=>r.tier===1).length}</i></button>
+      <div class="row wrap" style="gap:5px;margin-bottom:6px">
+        <button class="sfcat ${ui.mixTier==='all'?'on':''}" data-act="mixtier" data-t="all">全部 ${RECIPES.length}</button>
+        <button class="sfcat ${ui.mixTier==='classic'?'on':''}" data-act="mixtier" data-t="classic">经典 ${RECIPES.filter(r=>r.tier===1).length}</button>
       </div>
-      <div class="mixfrow" style="margin-bottom:2px">
-        <span class="mixflabel">现在能做什么</span>
-        <div class="seg">
-          ${mixFacet('make').map(([v,n])=>`<button class="${ui.mixMake===v?'on':''}" data-act="mixfilter" data-k="mixMake" data-v="${esc(v)}">${esc(v)} <i>${n}</i></button>`).join('')}
-        </div>
-      </div>
-      <div class="morewrap ${ui.mixMore?'open':''}">
-        <button class="morebtn" data-act="mixmoretoggle">
-          <span class="lbl">更多筛选</span>
-          <span class="morebtn-r">
-            ${mixMoreCount()?`<span class="cnt"><b>${mixMoreCount()}</b> 项生效</span>`:''}
-            <span class="caret">▾</span>
-          </span>
-        </button>
-        <div class="morebody">
-          ${mixFilterRow('风格', 'mixStyle', mixFacet('style'))}
-          ${mixFilterRow('基酒', 'mixBase', mixFacet('base'))}
-          ${mixFilterRow('谱系', 'mixLineage', mixFacet('lineage'))}
-        </div>
-      </div>
+      ${mixFilterRow('库存', 'mixMake', mixFacet('make'))}
+      ${mixFilterRow('风格', 'mixStyle', mixFacet('style'))}
+      ${mixFilterRow('基酒', 'mixBase', mixFacet('base'))}
+      ${mixFilterRow('谱系', 'mixLineage', mixFacet('lineage'))}
       <div class="row spread" style="margin:8px 0 6px">
         <div class="sub" style="margin:0">${list.length} 款${untranslatedCount?` · ${untranslatedCount} 款待中文化`:''}</div>
-        ${(ui.mixStyle!=='全部'||ui.mixBase!=='全部'||ui.mixLineage!=='全部'||ui.mixMake!=='全部'||ui.mixTier!=='all')?'<button class="btn sm" data-act="mixclear">清除筛选</button>':''}
+        ${(ui.mixStyle!=='全部'||ui.mixBase!=='全部'||ui.mixLineage!=='全部'||ui.mixTier!=='all')?'<button class="btn sm" data-act="mixclear">清除筛选</button>':''}
       </div>
       <div class="reclist" id="reclist">
         ${list.slice(0,ui.mixLimit).map(r=>`<div class="recitem ${r.id===ui.mixSel?'on':''}" data-act="selrecipe" data-id="${r.id}">
@@ -1312,17 +1219,6 @@ function viewLedger(){
   const cost=list.reduce((s,e)=>s+(e.cost||0),0);
   const vol=list.reduce((s,e)=>s+(e.totalMl||0),0);
 
-  // 按月分组：台账要像一本账，而不是一列流水
-  const groups=[];
-  if(ui.ledgerMonth==='all'){
-    const byMonth={};
-    list.forEach(e=>{ const m=eMonth(e); (byMonth[m]=byMonth[m]||[]).push(e); });
-    months.filter(m=>byMonth[m]&&byMonth[m].length).forEach(m=>groups.push({m,list:byMonth[m]}));
-  }else if(list.length){
-    groups.push({m:ui.ledgerMonth,list});
-  }
-  const top=list.slice().sort((a,b)=>(b.cost||0)-(a.cost||0))[0];
-
   return `
   ${pageHead('台账','每一杯都记在这里，可按月回看')}
   <div class="metrics">
@@ -1331,47 +1227,24 @@ function viewLedger(){
     <div class="metric"><div class="k">原料消耗</div><div class="v">${Math.round(vol)}<small> ml</small></div></div>
     <div class="metric"><div class="k">估算成本</div><div class="v">${money0(cost)}</div></div>
   </div>
-  <div class="ledgerwrap">
-    <div>
-      <div class="filterbar noprint">
-        <select id="ledgerMonth">
-          <option value="all" ${ui.ledgerMonth==='all'?'selected':''}>全部月份</option>
-          ${months.map(m=>`<option value="${m}" ${ui.ledgerMonth===m?'selected':''}>${monthLabel(m)}</option>`).join('')}
-        </select>
-        <span class="tiny dim">共 ${list.length} 条记录</span>
+  <div class="filterbar noprint">
+    <select id="ledgerMonth">
+      <option value="all" ${ui.ledgerMonth==='all'?'selected':''}>全部月份</option>
+      ${months.map(m=>`<option value="${m}" ${ui.ledgerMonth===m?'selected':''}>${monthLabel(m)}</option>`).join('')}
+    </select>
+    <span class="tiny dim">共 ${list.length} 条记录</span>
+    <button class="btn sm" data-act="clearledger" style="margin-left:auto">清空台账</button>
+  </div>
+  <div class="ledgerlist">
+    ${list.map(e=>`<div class="led">
+      <div class="num">#${String(e.seq).padStart(3,'0')}</div>
+      <div>
+        <div class="nm">${esc(e.name)}</div>
+        <div class="dt">${fmtDate(e.ts)} · ${e.servings} 杯 · ${ml(e.totalMl)}</div>
       </div>
-      <div class="ledgerlist">
-        ${groups.map(g=>{
-          const gc=g.list.reduce((s,e)=>s+e.servings,0);
-          const gv=g.list.reduce((s,e)=>s+(e.cost||0),0);
-          return `<div class="ledgroup">
-            <div class="ledghead">
-              <span class="lgm">${monthLabel(g.m)}</span>
-              <span class="lgs"><b>${gc}</b> 杯 · ${money0(gv)}</span>
-            </div>
-            ${g.list.map(e=>`<div class="led">
-              <div class="num">#${String(e.seq).padStart(3,'0')}</div>
-              <div>
-                <div class="nm">${esc(e.name)}</div>
-                <div class="dt">${e.servings} 杯 · ${ml(e.totalMl)}</div>
-              </div>
-              <div class="when">${fmtDate(e.ts)}</div>
-              <div class="amt"><b>${money0(e.cost||0)}</b><em>成本</em></div>
-              <button class="iconmini" data-act="undorec" data-id="${e.id}" title="撤销并退回库存">↩</button>
-            </div>`).join('')}
-          </div>`;
-        }).join('') || '<div class="card"><div class="empty"><b>还没有记录</b>去「调制」记下第一杯</div></div>'}
-      </div>
-    </div>
-    <aside class="sumcard noprint">
-      <h3>小结</h3>
-      <div class="sub">${ui.ledgerMonth==='all'?'全部月份':monthLabel(ui.ledgerMonth)}</div>
-      <div class="sumrow"><span class="sk">总杯数</span><span class="sv">${cups}<small>杯</small></span></div>
-      <div class="sumrow"><span class="sk">原料消耗</span><span class="sv">${Math.round(vol)}<small>ml</small></span></div>
-      <div class="sumrow gold"><span class="sk">估算成本</span><span class="sv">${money0(cost)}</span></div>
-      ${top?`<div class="sumrow"><span class="sk">最贵的一杯</span><span class="sv" style="font-size:13px;font-family:var(--sans);color:var(--tx)">${esc(top.name)}</span></div>`:''}
-      <div style="margin-top:14px"><button class="btn" data-act="clearledger" style="width:100%">清空台账</button></div>
-    </aside>
+      <div class="amt"><b>${money0(e.cost||0)}</b><em>成本</em></div>
+      <button class="iconmini" data-act="undorec" data-id="${e.id}" title="撤销并退回库存">↩</button>
+    </div>`).join('') || '<div class="card"><div class="empty"><b>还没有记录</b>去「调制」记下第一杯</div></div>'}
   </div>`;
 }
 
@@ -1567,7 +1440,6 @@ function handle(act,d){
     case 'mixfilter': ui[d.k]=d.v; ui.mixLimit=150; return render();
     case 'mixclear': ui.mixStyle='全部'; ui.mixBase='全部'; ui.mixLineage='全部'; ui.mixMake='全部'; ui.mixTier='all'; ui.mixLimit=150; return render();
     case 'mixmore': ui.mixLimit+=200; return render();
-    case 'mixmoretoggle': ui.mixMore=!ui.mixMore; return render();
   }
 }
 
