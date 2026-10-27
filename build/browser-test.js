@@ -147,7 +147,48 @@ const OUT = path.join(ROOT, 'preview');
   console.log(mob.length ? '  ⚠️  ' + mob.join('\n  ⚠️  ') : '  ✅ 无横向溢出，触摸目标均 ≥28px');
   await phone.close();
 
+  // 8. 回归（Issue #24）：酒柜卡片悬浮时，编辑/删除按钮不得压住名称行
+  //    历史教训：.acts 绝对定位在右上角，透明底直接盖住右对齐的分类标签
+  console.log('\n[回归] Issue #24 —— 酒柜卡片悬浮：按钮不得与名称行重叠');
+  const modal = page.locator('#mClose');
+  if (await modal.count() && await modal.isVisible()) { await modal.click(); await page.waitForTimeout(300); }
+  await page.click('#tabs button[data-v="cabinet"]');
+  await page.waitForTimeout(500);
+  // 找名字最长的一张卡（最容易撞车）
+  const worst = await page.locator('.stockcard').evaluateAll(cards => {
+    let best = -1, len = -1;
+    cards.forEach((c, i) => {
+      const n = (c.querySelector('.nm') || {}).textContent || '';
+      if (n.length > len) { len = n.length; best = i; }
+    });
+    return best;
+  });
+  const card = page.locator('.stockcard').nth(worst);
+  await card.hover();
+  await page.waitForTimeout(400);
+  const overlap = await card.evaluate(el => {
+    const nm = el.querySelector('.nm'), cat = el.querySelector('.cat');
+    const acts = el.querySelector('.acts'), btn = acts && acts.querySelector('.iconmini');
+    const r = e => e.getBoundingClientRect();
+    // 整组按钮（✎ + ✕）才是真正压住文字的那一块 —— 只量第一个按钮会漏判
+    const hit = (a, b) => a && b && a.right > b.left + 0.5 && a.left < b.right - 0.5 && a.bottom > b.top && a.top < b.bottom;
+    const cs = getComputedStyle(acts), cb = getComputedStyle(btn);
+    return {
+      nmOver: hit(r(nm), r(acts)),
+      catOver: hit(r(cat), r(acts)),
+      z: cs.zIndex,
+      opaque: cb.backgroundColor !== 'rgba(0, 0, 0, 0)' && cb.backgroundColor !== 'transparent',
+      visible: parseFloat(cs.opacity) > 0.5,
+    };
+  });
+  const overlapBad = overlap.nmOver || overlap.catOver || !overlap.opaque || overlap.z === 'auto';
+  console.log('  标题重叠:', overlap.nmOver, '| 分类重叠:', overlap.catOver,
+    '| 层级 z-index:', overlap.z, '| 按钮有不透明底:', overlap.opaque, '| 悬停可见:', overlap.visible);
+  console.log(overlapBad ? '  ❌ 按钮仍与名称行冲突（Issue #24 未修复）' : '  ✅ 按钮浮于上层且不遮挡名称行');
+  await card.screenshot({ path: path.join(OUT, '37-card-hover.png') });
+  console.log('  ▸ 37-card-hover.png (酒柜卡片悬停)');
+
   console.log('\nJS 错误:', errors.length ? errors.join('\n  ') : '无');
   await browser.close();
-  process.exit(errors.length || junkHits.length ? 1 : 0);
+  process.exit(errors.length || junkHits.length || overlapBad ? 1 : 0);
 })();

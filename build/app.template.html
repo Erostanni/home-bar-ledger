@@ -241,13 +241,15 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stockcard:hover{border-color:var(--line2);transform:translateY(-1px);
   box-shadow:0 8px 22px rgba(0,0,0,.3)}
 .stockcard:hover::before{background:var(--gold)}
-.stockcard .top{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.stockcard .top{display:flex;align-items:baseline;gap:10px;flex:0 0 auto;
+  transition:padding-right .18s var(--ease)}
 .stockcard .nm{font-weight:600;font-size:13px;padding-right:0;min-width:0;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:padding-right .18s var(--ease)}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stockcard .cat{margin-left:auto;font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto}
-/* hover 时编辑/删除按钮才出现，给标题让位 */
-.stockcard:hover .nm{padding-right:52px}
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+/* hover 时编辑/删除按钮才出现，整行一起给它们让位（Issue #24）：
+   只让标题让位的话，右对齐的分类标签会被压在按钮底下 */
+.stockcard:hover .top{padding-right:52px}
 .stockcard .bar{margin:8px 0 5px;flex:0 0 auto}
 .stockcard .amt{margin-top:auto;padding-top:2px;display:flex;justify-content:space-between;
   font-family:var(--mono);font-size:11.5px;color:var(--mu);gap:8px;min-width:0;width:100%}
@@ -256,8 +258,10 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .bar{height:4px;border-radius:3px;background:var(--panel3);margin:9px 0 6px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:3px}
 .bar i.low{background:linear-gradient(90deg,var(--bad),var(--bad))}
-.stockcard .acts{position:absolute;top:11px;right:11px;display:flex;gap:5px;opacity:0;transition:.15s}
+.stockcard .acts{position:absolute;top:11px;right:11px;display:flex;gap:5px;opacity:0;transition:.15s;z-index:3}
 .stockcard:hover .acts{opacity:1}
+/* 按钮浮在名称行上方：加一层不透明底 + 抬高层级，悬停时不再和文字糊在一起（Issue #24） */
+.stockcard .acts .iconmini{background:var(--panel);box-shadow:var(--sh-sm)}
 .iconmini{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);color:var(--mu2);display:grid;place-items:center;font-size:12px}
 .iconmini:hover{color:var(--gold);border-color:var(--gold-d)}
 
@@ -334,6 +338,8 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
   .sfcat{min-height:32px;display:inline-flex;align-items:center;padding:0 12px}
   .mixfrow .sfcat{min-height:30px}
   .stockcard .acts{top:8px;right:8px}
+  /* 触摸端按钮常显且更大（32px），名称行必须常驻留位，否则永久被压住（Issue #24） */
+  .stockcard .top{padding-right:64px}
   .recitem{padding:12px 13px;min-height:44px}
 }
 .filterbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
