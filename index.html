@@ -25,6 +25,8 @@
   --mask:rgba(8,6,4,.72);
   /* 其它 */
   --r:10px; --mono:"SFMono-Regular",Menlo,Consolas,"Courier New",monospace;
+  /* "Playfair Display" 未实际加载（无 @font-face / 无外链），仅作占位；
+     实际生效的是系统衬线（宋体 / Georgia）。禁止引入网络字体。 */
   --serif:"Playfair Display","Songti SC","STSong",Georgia,"Times New Roman",serif;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   --ease:cubic-bezier(.22,.61,.36,1);
@@ -38,6 +40,20 @@
   --sh-lg:0 18px 48px rgba(0,0,0,.34);
   --fs-xs:10.5px; --fs-sm:11.5px; --fs-base:13.5px; --fs-md:15px; --fs-lg:18px; --fs-xl:25px;
   --ring:0 0 0 3px color-mix(in srgb,var(--gold) 34%, transparent);
+  /* ---- 酒柜页：木材材质与顶光（Issue #17 规范 T1/T2）---- */
+  --wood-face:#241c14; --wood-face-2:#18120c; --wood-edge:#3b2c1d;
+  /* 卡面渐变三档：顶(受光) / 中(木面) / 底(搁板阴影) —— 顶光与底部阴影直接烤进背景渐变，
+     避免额外的模糊内阴影层（262 张卡滚动时开销明显） */
+  --wood-top:#3d2d1a; --wood-mid:#2c2114; --wood-bot:#160f08;
+  --wood-grain-ink:#0b0703; --wood-grain-a:.20; --wood-grain-tile:96px;
+  --wood-sheen:rgba(255,226,176,.22);
+  --wood-lamp:rgba(255,214,150,.20); --wood-lamp-2:rgba(255,214,150,.06);
+  --shelf-shadow:rgba(0,0,0,.55);
+  --cab-title-shadow:0 2px 10px rgba(0,0,0,.55), 0 0 24px rgba(217,164,65,.12);
+  --cab-name-shadow:0 1px 0 rgba(0,0,0,.60), 0 0 14px rgba(255,206,140,.10);
+  --cab-meta-shadow:0 1px 0 rgba(0,0,0,.45);
+  --cab-track:#0d0906; --cab-track-h:3px;
+  --cab-r:12px; --cab-gap:14px 16px; --cab-col:210px;
 }
 
 /* ============ 浅色主题 ============ */
@@ -54,6 +70,20 @@ html[data-theme="light"]{
   --inset:rgba(120,100,70,.06);
   --mask:rgba(60,48,30,.42);
   --sh:0 8px 22px rgba(80,60,30,.10);
+  /* ---- 酒柜页：浅色主题的木材与顶光 ----
+     浅色木面上「白上加白」的顶光不可见，故改为对比式表达：
+     顶部一条更亮的窄带（--wood-sheen）+ 卡片底部更重的暖棕内阴影（--shelf-shadow）。 */
+  --wood-face:#e7d9c0; --wood-face-2:#d9c6a5; --wood-edge:#c3ab84;
+  /* 浅色：顶部一条更亮的窄带（受光）→ 中段木面 → 底部更重的暖棕（搁板阴影） */
+  --wood-top:#f7ecd4; --wood-mid:#e6d2ac; --wood-bot:#b68d5c;
+  --wood-grain-ink:#8a6a3f; --wood-grain-a:.13;
+  --wood-sheen:rgba(255,255,255,.78);
+  --wood-lamp:rgba(255,252,238,.34); --wood-lamp-2:rgba(255,250,232,.10);
+  --shelf-shadow:rgba(96,72,40,.34);
+  --cab-title-shadow:0 1px 2px rgba(96,72,40,.28);
+  --cab-name-shadow:0 1px 0 rgba(255,255,255,.75);
+  --cab-meta-shadow:none;
+  --cab-track:#cbb694;
 }
 html[data-theme="light"] body{color:var(--tx)}
 html[data-theme="light"] body::after{
@@ -133,6 +163,8 @@ main{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:22px 20p
   letter-spacing:.2px;font-weight:600;color:var(--tx)}
 .pagehead p{margin:6px 0 0;font-size:var(--fs-sm);color:var(--mu);line-height:1.6;max-width:62ch}
 .pagehead .phright{display:flex;gap:var(--sp-2);align-items:center;flex:0 0 auto;padding-bottom:2px}
+/* 酒柜页专属的页头加强（其余页面不受影响） */
+.pagehead.pagehead--cab h2{letter-spacing:1.5px;font-weight:600;text-shadow:var(--cab-title-shadow)}
 /* 数字统一等宽对齐，金额不再左右跳 */
 .mono,.metric .v,.stockcard .amt,.led .amt,.rd .l2,.rrow .v,.fcell,.step input{font-variant-numeric:tabular-nums}
 /* 键盘可达性 */
@@ -209,6 +241,15 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .sfcat.on i{opacity:.8}
 .stockfilter select{padding:5px 9px;background:var(--panel3);border:1px solid var(--line);border-radius:7px;font-size:12px}
 .stockfilter .sfcount{font-size:11.5px;color:var(--mu2);margin-left:auto}
+/* 酒柜页的分类筛选：文字标签 + 金色下划线（不再是圆角胶囊）。
+   只作用于酒柜页；调制页的 .mixfrow .sfcat 保持现状。 */
+.stockfilter .sfcat{border:1px solid transparent;background:none;border-radius:0;padding:5px 11px;
+  font-size:12px;color:var(--mu);letter-spacing:.4px}
+.stockfilter .sfcat:hover{color:var(--tx);border-color:transparent;background:none}
+.stockfilter .sfcat.on{color:var(--gold);background:none;border-color:transparent;font-weight:600;
+  box-shadow:inset 0 -2px 0 var(--gold)}
+.stockfilter .sfcat i{font-size:10px;opacity:.6}
+.stockfilter .sfcat.on i{opacity:.8}
 /* 指标条：一条连贯的横条，比五张独立卡片更紧凑、更有节奏 */
 .metrics{display:flex;flex-wrap:wrap;background:linear-gradient(180deg,var(--panel),var(--panel3));
   border:1px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:20px;
@@ -221,6 +262,9 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
   display:flex;align-items:baseline;gap:3px}
 .metric .v small{font-family:var(--sans);font-size:11.5px;color:var(--mu);font-weight:400;letter-spacing:0}
 .metric.accent .v{color:var(--gold)}
+/* 指标条大数字投影：只在酒柜页生效（台账/账单页保持原样） */
+.metrics--cab .v{text-shadow:0 2px 6px rgba(0,0,0,.5)}
+html[data-theme="light"] .metrics--cab .v{text-shadow:none}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px}
 .stat .k{font-size:10.5px;color:var(--mu2);letter-spacing:1.3px;text-transform:uppercase}
@@ -228,40 +272,77 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
 .stat .v small{font-size:12px;color:var(--mu);font-weight:400}
 
 /* ---------- 酒柜 ---------- */
-.stocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:9px;
-  max-height:calc(100vh - 330px);min-height:180px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start}
+/* 材质：木纹（96px SVG turbulence tile）+ 顶光 + 搁板阴影
+   —— 顶光与底部搁板阴影直接烤进卡面背景渐变（--wood-top/--wood-mid/--wood-bot），
+      避免每张卡再叠一层模糊内阴影（实测 262 张卡时开销显著）。 */
+.stocklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--cab-col),1fr));gap:var(--cab-gap);
+  max-height:calc(100vh - 330px);min-height:180px;overflow-y:auto;padding:2px 4px 2px 2px;align-content:start;
+  background:radial-gradient(120% 60% at 50% 0%, rgba(0,0,0,.28), transparent 70%)}
+html[data-theme="light"] .stocklist{background:radial-gradient(120% 60% at 50% 0%, rgba(96,72,40,.10), transparent 70%)}
 .stocklist::-webkit-scrollbar{width:7px}
 .stocklist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
 .stocklist::-webkit-scrollbar-track{background:transparent}
-.stockcard{background:linear-gradient(180deg,var(--panel),var(--panel3));border:1px solid var(--line);
-  border-radius:11px;padding:11px 13px 11px 16px;position:relative;transition:.18s var(--ease);
-  display:flex;flex-direction:column;min-height:112px;min-width:0;overflow:hidden}
-.stockcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--line2);
+.stockcard{
+  background-color:var(--wood-bot);
+  background-image:radial-gradient(88% 44% at 50% -14%, var(--wood-lamp), transparent 68%),
+                   url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'96'%20height%3D'96'%3E%20%3Cfilter%20id%3D'g'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%3E%20%20%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.006%200.55'%20numOctaves%3D'3'%20seed%3D'7'%20stitchTiles%3D'stitch'%2F%3E%20%20%3CfeColorMatrix%20type%3D'matrix'%20values%3D'0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%200.62%200.26%200.12%200%200'%2F%3E%20%3C%2Ffilter%3E%20%3Cfilter%20id%3D'h'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%3E%20%20%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.004%200.32'%20numOctaves%3D'2'%20seed%3D'19'%20stitchTiles%3D'stitch'%2F%3E%20%20%3CfeColorMatrix%20type%3D'matrix'%20values%3D'0%200%200%200%200.66%200%200%200%200%200.47%200%200%200%200%200.26%200.62%200.26%200.12%200%200'%2F%3E%20%3C%2Ffilter%3E%20%3Crect%20width%3D'96'%20height%3D'96'%20filter%3D'url%28%23g%29'%20opacity%3D'0.55'%2F%3E%20%3Crect%20width%3D'96'%20height%3D'96'%20filter%3D'url%28%23h%29'%20opacity%3D'0.34'%2F%3E%3C%2Fsvg%3E"),
+                   linear-gradient(180deg,var(--wood-top) 0%,var(--wood-mid) 24%,var(--wood-bot) 100%);
+  background-size:100% 100%, var(--wood-grain-tile), 100% 100%;
+  background-blend-mode:normal, normal, normal;
+  border:1px solid var(--wood-edge);
+  border-radius:var(--cab-r);padding:11px 13px 11px 16px;position:relative;transition:.18s var(--ease);
+  display:flex;flex-direction:column;min-height:126px;min-width:0;overflow:hidden;
+  box-shadow:inset 0 1px 0 var(--wood-sheen)}
+/* 浅色主题：木纹换成暖棕（multiply 融合）；顶光靠「上亮下暗」的明暗对比表达 */
+html[data-theme="light"] .stockcard{
+  background-image:radial-gradient(76% 26% at 50% -8%, rgba(255,255,255,.55), transparent 72%),
+                   url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'96'%20height%3D'96'%3E%20%3Cfilter%20id%3D'g'%20x%3D'0'%20y%3D'0'%20width%3D'100%25'%20height%3D'100%25'%3E%20%20%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.006%200.55'%20numOctaves%3D'3'%20seed%3D'7'%20stitchTiles%3D'stitch'%2F%3E%20%20%3CfeColorMatrix%20type%3D'matrix'%20values%3D'0%200%200%200%200.55%200%200%200%200%200.38%200%200%200%200%200.20%200.62%200.26%200.12%200%200'%2F%3E%20%3C%2Ffilter%3E%20%3Crect%20width%3D'96'%20height%3D'96'%20filter%3D'url%28%23g%29'%20opacity%3D'0.42'%2F%3E%3C%2Fsvg%3E"),
+                   linear-gradient(180deg,var(--wood-top) 0%,var(--wood-mid) 22%,var(--wood-bot) 100%);
+  background-size:100% 100%, var(--wood-grain-tile), 100% 100%;
+  background-blend-mode:normal, multiply, normal}
+/* 左侧瓶位标：上亮下暗的渐变竖条（不是纯色块） */
+.stockcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;z-index:2;
+  background:linear-gradient(180deg,var(--gold-d),rgba(217,164,65,.15) 60%,transparent);
   transition:.18s var(--ease)}
-.stockcard:hover{border-color:var(--line2);transform:translateY(-1px);
-  box-shadow:0 8px 22px rgba(0,0,0,.3)}
-.stockcard:hover::before{background:var(--gold)}
+html[data-theme="light"] .stockcard::before{background:linear-gradient(180deg,var(--gold-d),rgba(169,118,31,.25))}
+.stockcard:hover{border-color:var(--wood-edge);transform:translateY(-2px);filter:brightness(1.04);
+  box-shadow:inset 0 1px 0 var(--wood-sheen), 0 14px 28px -12px rgba(0,0,0,.6)}
+html[data-theme="light"] .stockcard:hover{filter:brightness(1.02);
+  box-shadow:inset 0 1px 0 var(--wood-sheen), 0 14px 26px -12px rgba(96,72,40,.42)}
+/* hover 时竖条整体变金（保持渐变，不做纯色覆盖） */
+.stockcard:hover::before{background:linear-gradient(180deg,var(--gold-l),rgba(217,164,65,.35) 60%,transparent)}
+html[data-theme="light"] .stockcard:hover::before{background:linear-gradient(180deg,var(--gold),rgba(169,118,31,.45))}
 .stockcard .top{display:flex;align-items:baseline;gap:10px;flex:0 0 auto;
   transition:padding-right .18s var(--ease)}
-.stockcard .nm{font-weight:600;font-size:13px;padding-right:0;min-width:0;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.stockcard .cat{margin-left:auto;font-size:10px;color:var(--mu2);letter-spacing:.5px;text-transform:uppercase;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto;min-width:0}
+/* 第一行：中文名（完整、不截断）+ 英文名（次级、可截断） */
+.stockcard .nm{display:flex;align-items:baseline;gap:7px;min-width:0;flex:1 1 auto}
+.stockcard .nm .zh{flex:0 0 auto;font-weight:600;font-size:13px;white-space:nowrap;color:var(--tx);
+  text-shadow:var(--cab-name-shadow)}
+.stockcard .nm .en{flex:0 1 auto;min-width:0;font-weight:500;font-size:12px;color:var(--mu);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:var(--cab-meta-shadow)}
+.stockcard .nm .en.lead{font-weight:600;font-size:13px;color:var(--tx);text-shadow:var(--cab-name-shadow)}
+/* 第二行：分类 · ABV（从标题行右侧移到独立一行，不再与酒名抢空间） */
+.stockcard .cat{margin:6px 0 0;font-size:10px;color:var(--mu);letter-spacing:.5px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:0 0 auto;
+  text-shadow:var(--cab-meta-shadow)}
 /* hover 时编辑/删除按钮才出现，整行一起给它们让位（Issue #24）：
    只让标题让位的话，右对齐的分类标签会被压在按钮底下 */
 .stockcard:hover .top{padding-right:52px}
-.stockcard .bar{margin:8px 0 5px;flex:0 0 auto}
+.stockcard .bar{margin:7px 0 5px;flex:0 0 auto}
 .stockcard .amt{margin-top:auto;padding-top:2px;display:flex;justify-content:space-between;
   font-family:var(--mono);font-size:11.5px;color:var(--mu);gap:8px;min-width:0;width:100%}
 .stockcard .amt+.amt{margin-top:3px;padding-top:0;opacity:.7}
 .stockcard .amt span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.bar{height:4px;border-radius:3px;background:var(--panel3);margin:9px 0 6px;overflow:hidden}
+/* 余量进度条：轨道变成凹槽，与木面拉开（§3.5） */
+.bar{height:var(--cab-track-h);border-radius:3px;background:var(--cab-track);margin:9px 0 6px;overflow:hidden;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+html[data-theme="light"] .bar{box-shadow:inset 0 1px 2px rgba(96,72,40,.35)}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:3px}
 .bar i.low{background:linear-gradient(90deg,var(--bad),var(--bad))}
 .stockcard .acts{position:absolute;top:11px;right:11px;display:flex;gap:5px;opacity:0;transition:.15s;z-index:3}
 .stockcard:hover .acts{opacity:1}
 /* 按钮浮在名称行上方：加一层不透明底 + 抬高层级，悬停时不再和文字糊在一起（Issue #24） */
-.stockcard .acts .iconmini{background:var(--panel);box-shadow:var(--sh-sm)}
+.stockcard .acts .iconmini{background:var(--wood-face-2);box-shadow:var(--sh-sm)}
 .iconmini{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);color:var(--mu2);display:grid;place-items:center;font-size:12px}
 .iconmini:hover{color:var(--gold);border-color:var(--gold-d)}
 
@@ -340,6 +421,7 @@ label.lb{display:block;font-size:11px;color:var(--mu);margin-bottom:5px;letter-s
   .stockcard .acts{top:8px;right:8px}
   /* 触摸端按钮常显且更大（32px），名称行必须常驻留位，否则永久被压住（Issue #24） */
   .stockcard .top{padding-right:64px}
+  .stockcard .cat{margin-top:10px}
   .recitem{padding:12px 13px;min-height:44px}
 }
 .filterbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
@@ -553,6 +635,16 @@ html.no-motion *{animation:none !important;transition:none !important}
   .stat .v{font-size:19px}
   .receipt{width:100%;padding:18px 14px}
   .rrow.g3{grid-template-columns:1fr auto 54px}
+}
+
+/* ---------- 酒柜：移动端（§3.2） ---------- */
+@media (max-width:640px){
+  .stocklist{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px 10px}
+  .stockcard .nm .zh{font-size:13.5px}
+  .stockcard .nm .en{font-size:12.5px}
+  /* 无中文名的卡片，主名是 .en.lead —— 同样要达到规范要求的 13.5px */
+  .stockcard .nm .en.lead{font-size:13.5px}
+  .stockcard .amt{font-size:12px}
 }
 
 /* ---------- 打印 ---------- */
@@ -944,9 +1036,9 @@ function render(){
 }
 
 /* ============================ 视图：酒柜 ============================ */
-/** 统一页头 */
-function pageHead(title, sub, right){
-  return '<div class="pagehead"><div class="phtxt"><h2>'+title+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div>'
+/** 统一页头。cls：可选的限定 class（用于只给某一页加强样式） */
+function pageHead(title, sub, right, cls){
+  return '<div class="pagehead'+(cls?' '+cls:'')+'"><div class="phtxt"><h2>'+title+'</h2>'+(sub?'<p>'+sub+'</p>':'')+'</div>'
     + (right?'<div class="phright">'+right+'</div>':'')+'</div>';
 }
 
@@ -974,15 +1066,17 @@ function viewCabinet(){
     const tot=cap+(s.openedMl||0);
     const pct=s.sizeMl? Math.min(100, ((s.openedMl||0)/(s.sizeMl||1))*100) : 0;
     const meta=ING_META[n]||{};
+    const zh=zhOf(n);
+    // 第一行：中文名（完整不截断）+ 英文名（次级、可截断）；分类 · ABV 移到第二行
     return `<div class="stockcard">
       <div class="acts">
         <button class="iconmini" data-act="editstock" data-name="${esc(n)}" title="编辑">✎</button>
         <button class="iconmini" data-act="delstock" data-name="${esc(n)}" title="删除">✕</button>
       </div>
       <div class="top">
-        <div class="nm">${zhOf(n)?zhOf(n)+" · ":""}${esc(n)}</div>
-        <div class="cat">${esc(meta.catZh||meta.cat||'其他')}${meta.abv?` · ${meta.abv}% ABV`:''}</div>
+        <div class="nm">${zh?`<span class="zh">${esc(zh)}</span>`:''}<span class="en${zh?'':' lead'}">${esc(n)}</span></div>
       </div>
+      <div class="cat">${esc(meta.catZh||meta.cat||'其他')}${meta.abv?` · ${meta.abv}% ABV`:''}</div>
       <div class="bar" title="开封瓶内剩余比例"><i class="${pct>85?'low':''}" style="width:${pct}%"></i></div>
       <div class="amt"><span>${tot>0?(tot.toFixed(0)+' ml'):'空'}</span><span>${s.price!=null?money(s.price)+' / 瓶':'未标价'}</span></div>
       <div class="amt"><span>${s.unopened||0} 瓶${s.openedMl>0?` · 开封 ${s.openedMl.toFixed(0)}ml`:''}</span><span>${s.sizeMl?s.sizeMl+'ml/瓶':'规格未填'}</span></div>
@@ -991,8 +1085,9 @@ function viewCabinet(){
 
   return `
   ${pageHead('酒柜','家里有什么、还剩多少，调制时自动扣减',
-    '<button class="btn" data-act="import">导入</button><button class="btn" data-act="export">导出备份</button><button class="btn gold" data-act="addstock">+ 添加原料</button>')}
-  <div class="metrics">
+    '<button class="btn" data-act="import">导入</button><button class="btn" data-act="export">导出备份</button><button class="btn gold" data-act="addstock">+ 添加原料</button>',
+    'pagehead--cab')}
+  <div class="metrics metrics--cab">
     <div class="metric"><div class="k">在册原料</div><div class="v">${allNames.length}<small> 种</small></div></div>
     <div class="metric"><div class="k">整瓶库存</div><div class="v">${totalBottles}<small> 瓶</small></div></div>
     <div class="metric"><div class="k">已开封</div><div class="v">${opened}<small> 种</small></div></div>

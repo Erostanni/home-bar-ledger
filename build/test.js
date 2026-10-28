@@ -621,5 +621,95 @@ console.log('\n【12】旧版备份迁移（缺字段不漏 undefined）');
   ok(t.errors.length === 0, '迁移过程无 JS 错误: ' + (t.errors.join('; ') || '无'));
 }
 
+/* ============ 场景 22：酒柜页视觉规则（结构 + 样式契约）============
+   jsdom 没有布局引擎，断不了「重叠 / 木纹 / 顶光」这类问题，
+   这里只锁「结构契约」与「CSS 规则契约」；
+   真正的视觉量测（getBoundingClientRect / getComputedStyle）在 build/browser-test.js。 */
+console.log('\n【22】酒柜页视觉规则');
+{
+  /* --- CSS 解析小工具 --- */
+  const CSS_RAW = [...HTML.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const CSS = CSS_RAW.replace(/\/\*[\s\S]*?\*\//g, '');   // 去注释，避免注释里的逗号/括号污染选择器
+  /** 取某选择器（可含逗号组）的所有规则体 */
+  const rule = sel => {
+    const want = sel.replace(/\s+/g, ' ').trim();
+    const hits = [];
+    const re = /([^{}@]+)\{([^{}]*)\}/g; let m;
+    while ((m = re.exec(CSS))) {
+      const sels = m[1].split(',').map(s => s.replace(/\s+/g, ' ').trim());
+      if (sels.includes(want)) hits.push(m[2]);
+    }
+    return hits.join('\n');
+  };
+  /** 取 @media 块的内容（按大括号配对） */
+  const mediaBlock = header => {
+    const i = CSS.indexOf(header);
+    if (i < 0) return '';
+    const open = CSS.indexOf('{', i);
+    let depth = 0, j = open;
+    for (; j < CSS.length; j++) {
+      if (CSS[j] === '{') depth++;
+      else if (CSS[j] === '}') { depth--; if (!depth) break; }
+    }
+    return CSS.slice(open + 1, j);
+  };
+  const rootVar = v => new RegExp('(^|[;{\\s])' + v + '\\s*:').test(CSS);
+
+  // 1. 材质 token
+  ok(rootVar('--wood-face') && rootVar('--wood-sheen') && rootVar('--cab-r') && rootVar('--cab-gap'),
+    '定义了木材材质 token（--wood-* / --cab-*）');
+  ok(/html\[data-theme="light"\]\s*\{[\s\S]*--wood-face/.test(CSS), '浅色主题也有木材 token');
+
+  // 2. 木纹
+  ok(/data:image\/svg\+xml/.test(rule('.stockcard')), '卡片背景含木纹 SVG data-URI');
+  ok(/background-size:[^;]*var\(--wood-grain-tile\)/.test(rule('.stockcard')), '木纹 tile 使用 --wood-grain-tile（≤128px）');
+
+  // 3. 顶光（射灯光锥 + 上亮下暗渐变）
+  const cardRule = rule('.stockcard');
+  const hasAfter = /::after/.test(cardRule) || /\.stockcard::after\{[\s\S]*?\}/.test(CSS);
+  const afterRule = rule('.stockcard::after');
+  const lightViaAfter = hasAfter && /gradient/.test(afterRule);
+  const lightViaBg = /radial-gradient/.test(cardRule);
+  ok(lightViaAfter || lightViaBg,
+    '顶光层存在（.stockcard::after 渐变 或 卡面背景径向光锥）' +
+    (lightViaAfter ? '［伪元素］' : lightViaBg ? '［背景渐变］' : ''));
+  if (hasAfter) ok(/gradient/.test(afterRule), '.stockcard::after 若存在则必须是渐变');
+
+  // 4. 卡片内阴影（受光边 / 搁板阴影）
+  ok(/box-shadow:[^;]*inset/.test(cardRule), '卡片有 inset 内阴影');
+
+  // 5. 文字阴影
+  ok(/text-shadow/.test(rule('.stockcard .nm .zh')), '酒名（.nm .zh）有 text-shadow');
+
+  // 6. 分类筛选：不再是圆角胶囊
+  ok(/border-radius:\s*0/.test(rule('.stockfilter .sfcat')), '酒柜筛选按钮 border-radius 为 0（非胶囊）');
+  ok(/box-shadow:\s*inset 0 -2px 0/.test(rule('.stockfilter .sfcat.on')), '选中筛选用金色下划线而非实心块');
+  // 7. 防误伤：调制页的 .mixfrow .sfcat 不能被改成直角
+  const mixSf = rule('.mixfrow .sfcat');
+  ok(!/border-radius/.test(mixSf) && !/background:\s*none/.test(mixSf),
+    '调制页 .mixfrow .sfcat 未被酒柜样式误伤（仍保留胶囊）');
+  ok(/border-radius:\s*20px/.test(rule('.sfcat')), '基础 .sfcat 仍是 20px 圆角（调制页不受影响）');
+
+  // 8. 移动端
+  const mob = mediaBlock('@media (max-width:640px)');
+  ok(/\.stocklist\{[^}]*grid-template-columns/.test(mob), '移动端有专门的 .stocklist 栅格');
+  ok(/\.stockcard \.nm \.zh\{[^}]*13\.5px/.test(mob), '移动端酒名字号提到 13.5px');
+
+  // 9. 结构契约：中文名 / 英文名 分列，分类独立成行
+  const t = boot({ stock: { Gin: { name: 'Gin', sizeMl: 750, price: 180, unopened: 1, openedMl: 0, note: '' } },
+    ledger: [], settings: { barName: 'T', barSub: 'T', owner: '', currency: '¥' } });
+  t.tab('cabinet');
+  const card = t.$('.stockcard');
+  ok(!!card, '酒柜渲染出卡片');
+  ok(!!card.querySelector('.nm .en') && card.querySelector('.nm .en').textContent.trim() === 'Gin',
+    '卡片名含英文名 .en（次级、可截断）');
+  ok(!!card.querySelector('.nm .zh') && card.querySelector('.nm .zh').textContent.trim().length > 0,
+    '卡片名含中文名 .zh（完整不截断）');
+  ok(!!card.querySelector('.top + .cat'), '分类 / ABV 独立成一行（不再与酒名抢空间）');
+  ok(t.$('.pagehead').className.includes('pagehead--cab'), '酒柜页头带 pagehead--cab 限定类');
+  ok(t.$('.metrics').className.includes('metrics--cab'), '酒柜指标条带 metrics--cab 限定类');
+  ok(t.errors.length === 0, '无 JS 错误: ' + (t.errors.join('; ') || '无'));
+}
+
 console.log(`\n${'='.repeat(46)}\n通过 ${pass} · 失败 ${fail}\n${'='.repeat(46)}`);
 process.exit(fail ? 1 : 0);
